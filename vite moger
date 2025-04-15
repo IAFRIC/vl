@@ -1,0 +1,2806 @@
+<!DOCTYPE html>
+<html lang="fr-FR">
+<head>
+    <meta charset="UTF-8">
+    <title>Vite Loger - Gestion Immobilière</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name='robots' content='noindex, nofollow' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            --primary-light: #00AEBC;
+            --secondary-light: #F0DF00;
+            --light-bg: #f8f9fa;
+            --light-card: #ffffff;
+            --light-text: #212529;
+            --light-border: #dee2e6;
+            --light-input-bg: #ffffff;
+            --light-input-text: #495057;
+            --light-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --light-glass-bg: rgba(255, 255, 255, 0.85);
+            --light-thead-bg: #e9ecef;
+            --light-thead-text: #495057;
+            --primary-dark: #00AEBC;
+            --secondary-dark: #F0DF00;
+            --dark-bg: #121212;
+            --dark-card: #1e1e1e;
+            --dark-text: #e0e0e0;
+            --dark-border: #444;
+            --dark-input-bg: #2a2a2a;
+            --dark-input-text: #e0e0e0;
+            --dark-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            --dark-glass-bg: rgba(30, 30, 30, 0.85);
+            --dark-thead-bg: #343a40;
+            --dark-thead-text: #f8f9fa;
+            --blur: blur(8px);
+            --border-radius-main: 8px;
+            --border-radius-small: 4px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--light-bg); color: var(--light-text); line-height: 1.6; transition: background-color 0.3s, color 0.3s; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .container { max-width: 1300px; margin: 20px auto; padding: 15px; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+        h1, h2, h3, h4 { color: var(--primary-light); margin-bottom: 1rem; font-weight: 500; }
+        h1 { font-size: 2.2rem; text-align: center; margin-bottom: 1.5rem; }
+        h2 { font-size: 1.6rem; border-bottom: 1px solid var(--light-border); padding-bottom: 0.5rem; }
+        h3 { font-size: 1.3rem; margin-top: 1.5rem; }
+        h4 { font-size: 1.1rem; margin: 0.8rem 0 0.4rem; font-weight: 600; }
+        .form-container, .card { background: var(--light-card); border: 1px solid var(--light-border); padding: 20px; border-radius: var(--border-radius-main); box-shadow: var(--light-shadow); margin-bottom: 25px; transition: background-color 0.3s, border-color 0.3s; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.95em; color: var(--light-text); }
+        label.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+        input[type="text"], input[type="tel"], input[type="email"], input[type="password"], input[type="number"], input[type="file"], textarea, select { width: 100%; padding: 0.65rem 0.8rem; border: 1px solid var(--light-border); border-radius: var(--border-radius-small); background-color: var(--light-input-bg); color: var(--light-input-text); font-size: 1em; transition: border-color 0.2s, box-shadow 0.2s; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(0, 174, 188, 0.2); }
+        input:read-only, textarea:read-only, select:disabled { background-color: #e9ecef !important; cursor: not-allowed; opacity: 0.7; border-color: var(--light-border) !important; box-shadow: none !important; }
+        input[readonly].read-as-text, textarea[readonly].read-as-text { background-color: transparent !important; border: none !important; padding-left: 0; padding-right: 0; cursor: default; opacity: 1; box-shadow: none !important; }
+        input[type="file"] { padding: 0.4rem; }
+        textarea { min-height: 80px; resize: vertical; }
+        .checkbox-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start; margin-top: 0.5rem; }
+        .checkbox-grid label { display: flex; align-items: center; gap: 8px; font-weight: normal; margin-bottom: 0; cursor: pointer; font-size: 0.95em; }
+        .checkbox-grid input[type="checkbox"] { width: auto; margin-right: 0; accent-color: var(--primary-light); height: 1.1em; width: 1.1em; cursor: pointer; flex-shrink: 0; }
+        .error-message { color: #dc3545; font-size: 0.85em; display: none; margin-top: 5px; }
+        .error-message.visible { display: block; }
+        .quick-links { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .quick-links button { background-color: var(--light-input-bg); color: var(--primary-light); padding: 8px 12px; border: 1px solid var(--light-border); border-radius: var(--border-radius-small); cursor: pointer; font-size: 0.9em; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .quick-links button:hover { background-color: #e9ecef; border-color: #adb5bd; transform: translateY(-1px); }
+        .quick-links button.active { background-color: var(--primary-light); color: #FFF; border-color: var(--primary-light); font-weight: 500; box-shadow: 0 2px 5px rgba(0, 174, 188, 0.3); }
+        .quick-links button i { font-size: 1.1em; }
+        .btn-text { margin-left: 6px; display: inline; }
+        .card.hidden { display: none; }
+        .profile-display { display: flex; align-items: center; gap: 25px; justify-content: space-between; flex-wrap: wrap; margin-bottom: 20px; padding: 15px; background-color: rgba(0, 174, 188, 0.03); border-radius: var(--border-radius-main); }
+        .profile-display > div { flex-grow: 1; }
+        .profile-photo { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-light); flex-shrink: 0; background-color: #eee; }
+        .profile-display p { margin-bottom: 0.5rem; font-size: 1em; }
+        .profile-display p strong { margin-right: 5px; font-weight: 500; }
+        .profile-display .action-buttons { margin-top: 10px; }
+        .table-container { overflow-x: auto; max-height: 450px; position: relative; margin-bottom: 15px; border: 1px solid var(--light-border); border-radius: var(--border-radius-small); background-color: var(--light-card); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        thead { position: sticky; top: 0; z-index: 10; background: var(--light-thead-bg); color: var(--light-thead-text); }
+        th, td { padding: 0.7rem 0.8rem; border: 1px solid var(--light-border); text-align: left; vertical-align: middle; white-space: nowrap; }
+        th { background: var(--light-thead-bg); color: var(--light-thead-text); cursor: pointer; position: relative; font-weight: 500; user-select: none; }
+        th:hover { background-color: #d1d5db; }
+        th.sort-asc::after, th.sort-desc::after { content: ''; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 4px solid transparent; opacity: 0.6; }
+        th.sort-asc::after { content: ' ▲'; } th.sort-desc::after { content: ' ▼'; }
+        tbody tr:nth-child(even) { background-color: rgba(0,0,0,0.02); }
+        tbody tr:hover { background-color: rgba(0, 174, 188, 0.05); }
+        td { white-space: normal; }
+        td a[href^="tel:"], td a[href^="mailto:"] { color: var(--primary-light); text-decoration: none; word-break: break-word; }
+        td a:hover { text-decoration: underline; }
+        td input[type="checkbox"] { cursor: pointer; accent-color: var(--primary-light); height: 1em; width: 1em; }
+        td button { padding: 4px 8px; background-color: var(--primary-light); color: #FFF; border: none; border-radius: var(--border-radius-small); cursor: pointer; margin-right: 5px; transition: background-color 0.2s, transform 0.1s; font-size: 0.85em; line-height: 1.2; vertical-align: middle; }
+        td button:hover { background-color: #008c96; transform: scale(1.05); }
+        td button.cancel { background-color: #6c757d; } td button.cancel:hover { background-color: #5a6268; }
+        .action-buttons { margin-top: 1.2rem; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-start; align-items: center; }
+        .action-buttons button { display: inline-flex; align-items: center; gap: 6px; }
+        #map { height: 500px; border-radius: var(--border-radius-main); width: 100%; box-shadow: var(--light-shadow); margin-bottom: 15px; border: 1px solid var(--light-border); background-color: #e9ecef; }
+        .map-controls { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 15px; }
+        .map-filters { display: flex; flex-wrap: wrap; gap: 20px; width: 100%; }
+        .map-filters > div { background: var(--light-card); border: 1px solid var(--light-border); padding: 15px; border-radius: var(--border-radius-main); flex: 1; min-width: 230px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .map-filters h3, .map-filters h4 { margin-bottom: 10px; margin-top: 0; }
+        .map-filters h4 { font-size: 1rem; color: var(--primary-light); margin-bottom: 8px;}
+        .map-filters label { display: flex; align-items: center; margin: 8px 0; cursor: pointer; font-weight: normal; font-size: 0.95em; }
+        .map-filters input[type="checkbox"] { width: auto; margin-right: 8px; vertical-align: middle; accent-color: var(--primary-light); height: 1.1em; width: 1.1em; cursor: pointer; flex-shrink: 0; }
+        .map-filters i { margin-right: 6px; width: 1.1em; text-align: center; font-size: 1.1em; opacity: 0.8; }
+        .map-options .form-group { margin-bottom: 10px; }
+        .popup-form { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); background-color: var(--light-bg); padding: 25px 30px; border-radius: var(--border-radius-main); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); z-index: 1001; display: none; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--light-border); transition: transform 0.2s ease-out, opacity 0.2s ease-out; opacity: 0; }
+        .popup-form.visible { display: block; transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        .popup-form h2 { margin-top: 0; text-align: center; font-size: 1.4rem; }
+        .popup-form form { margin-top: 20px; }
+        .popup-form .action-buttons { justify-content: flex-end; margin-top: 25px; border-top: 1px solid var(--light-border); padding-top: 15px; }
+        #scanPopup .action-buttons, #qrPopup .action-buttons { justify-content: center; }
+        .scan-video { display: block; width: 100%; max-width: 400px; margin: 10px auto 15px auto; border-radius: var(--border-radius-small); border: 1px solid var(--light-border); background-color: #000; }
+        button { background-color: var(--primary-light); color: #FFF; padding: 0.6rem 1rem; border: none; border-radius: var(--border-radius-small); cursor: pointer; transition: background-color 0.2s, transform 0.1s ease-out, box-shadow 0.2s; font-size: 0.95em; line-height: 1.5; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.05); white-space: nowrap; }
+        button:hover { background-color: #008c96; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        button:active { transform: translateY(0); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        button:disabled { background-color: #adb5bd; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.7; }
+        button i { vertical-align: middle; margin-right: 6px; }
+        button.cancel { background-color: #6c757d; color: #FFF; }
+        button.cancel:hover { background-color: #5a6268; }
+        .filter-group { margin-bottom: 1rem; }
+        .filter-group label { margin-right: 10px; display: inline-block; vertical-align: middle;}
+        .filter-group input[type="text"], .filter-group select { max-width: 350px; display: inline-block; vertical-align: middle; margin-right: 10px; }
+        .stats-filters { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 1.5rem; align-items: center; }
+        .stats-filters .filter-group { margin-bottom: 0; }
+        .stats-filters select { min-width: 180px; padding: 0.5rem; }
+        #statsChart { max-height: 350px; }
+        a { color: var(--primary-light); text-decoration: none; }
+        a:hover { text-decoration: underline; color: #008c96; }
+        #qrCodeContainer { text-align: center; margin: 20px 0; }
+        #qrCodeContainer canvas, #qrCodeContainer img { display: block; margin: 10px auto; max-width: 260px; height: auto; border: 1px solid var(--light-border); border-radius: var(--border-radius-small); background-color: #fff; }
+        #qrCodeContainer p { font-size: 0.9em; color: #6c757d; margin-top: 5px; word-break: break-all; }
+        .scan-instructions { margin-bottom: 20px; padding: 15px; background-color: rgba(0, 174, 188, 0.04); border-radius: var(--border-radius-small); text-align: center; border: 1px dashed var(--primary-light); font-size: 0.95em; }
+        #uploadQR { display: none; }
+        .leaflet-popup-content-wrapper { background: var(--light-card); color: var(--light-text); border-radius: var(--border-radius-small); box-shadow: 0 3px 10px rgba(0,0,0,0.1); padding: 10px; }
+        .leaflet-popup-content { font-size: 0.9em; line-height: 1.5; margin: 5px 8px; max-height: 150px; overflow-y: auto; }
+        .leaflet-popup-content b { color: var(--primary-light); }
+        .leaflet-popup-content button { padding: 3px 6px; font-size: 0.8em; margin-top: 5px; }
+        .leaflet-popup-tip { background: var(--light-card); }
+        @media (prefers-color-scheme: dark) {
+            body { background-color: var(--dark-bg); color: var(--dark-text); }
+            h1, h2, h3, h4 { color: var(--primary-dark); } h2 { border-bottom-color: var(--dark-border); }
+            .form-container, .card { background-color: var(--dark-card); border-color: var(--dark-border); box-shadow: var(--dark-shadow); }
+            input[type="text"], input[type="tel"], input[type="email"], input[type="password"], input[type="number"], input[type="file"], textarea, select { background-color: var(--dark-input-bg); color: var(--dark-input-text); border-color: var(--dark-border); }
+            input:focus, textarea:focus, select:focus { border-color: var(--primary-dark); box-shadow: 0 0 0 2px rgba(0, 174, 188, 0.3); }
+            input:read-only, textarea:read-only, select:disabled { background-color: #2f2f2f !important; border-color: var(--dark-border) !important; box-shadow: none !important; }
+            label { color: var(--dark-text); } .error-message { color: #ff8080; }
+            .quick-links button { background-color: var(--dark-input-bg); color: var(--primary-dark); border-color: var(--dark-border); }
+            .quick-links button:hover { background-color: #2a2a2a; border-color: #666; }
+            .quick-links button.active { background-color: var(--primary-dark); color: #000; border-color: var(--primary-dark); box-shadow: 0 2px 5px rgba(0, 174, 188, 0.4); }
+            .profile-display { background-color: rgba(0, 174, 188, 0.08); } .profile-photo { border-color: var(--primary-dark); background-color: #444; }
+            .table-container { border-color: var(--dark-border); background-color: var(--dark-card); }
+            thead { background: var(--dark-thead-bg); color: var(--dark-thead-text); } th, td { border-color: var(--dark-border); }
+            th { background: var(--dark-thead-bg); color: var(--dark-thead-text); } th:hover { background: #495057; }
+            tbody tr:nth-child(even) { background-color: rgba(255,255,255,0.04); } tbody tr:hover { background-color: rgba(0, 174, 188, 0.1); }
+            td a[href^="tel:"], td a[href^="mailto:"] { color: var(--primary-dark); } td a:hover { color: #00cde0; }
+            td button { background-color: var(--primary-dark); color: #000; } td button:hover { background-color: #00cde0; }
+            td button.cancel { background-color: #5a6268; color: #FFF;} td button.cancel:hover { background-color: #495057; }
+            #map { border-color: var(--dark-border); background-color: #1e1e1e; }
+            .map-filters > div { background-color: var(--dark-card); border-color: var(--dark-border); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+            .popup-form { background-color: var(--dark-bg); border-color: var(--dark-border); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+            .popup-form .action-buttons { border-top-color: var(--dark-border); } .scan-video { border-color: var(--dark-border); }
+            button { background-color: var(--primary-dark); color: #000; } button:hover { background-color: #00cde0; }
+            button.cancel { background-color: #5a6268; color: #FFF; } button.cancel:hover { background-color: #495057; }
+            a { color: var(--primary-dark); } a:hover { color: #00cde0; }
+            #qrCodeContainer canvas, #qrCodeContainer img { border-color: var(--dark-border); background-color: #fff; }
+            #qrCodeContainer p { color: #aaa; } .scan-instructions { background-color: rgba(0, 174, 188, 0.1); border-color: var(--primary-dark); }
+            .leaflet-popup-content-wrapper { background: var(--dark-card); color: var(--dark-text); border: 1px solid var(--dark-border); box-shadow: 0 3px 10px rgba(0,0,0,0.4); }
+            .leaflet-popup-content b { color: var(--primary-dark); } .leaflet-popup-tip { background: var(--dark-card); }
+            .leaflet-tile-pane { filter: brightness(0.8) contrast(1.1); } .leaflet-control-attribution a { color: var(--primary-dark); }
+        }
+
+
+<!-- Fragment: Fragment 2 -->
+@media (max-width: 768px) {
+    html { font-size: 15px; } .container { padding: 10px; margin: 10px auto; } h1 { font-size: 1.8rem; } h2 { font-size: 1.4rem; }
+    .quick-links { justify-content: flex-start; } .quick-links button { padding: 8px; font-size: 0; width: 45px; height: 45px; } .quick-links button .btn-text { display: none; }
+    .profile-display { flex-direction: column; text-align: center; align-items: center; gap: 15px;} .profile-photo { margin-bottom: 10px; width: 80px; height: 80px; }
+    table { font-size: 0.85em; } th, td { padding: 0.5rem 0.6rem; white-space: normal; }
+    .map-controls { flex-direction: column; gap: 15px; } .map-filters > div { width: 100%; min-width: unset; } #map { height: 400px; }
+    .popup-form { width: 95%; padding: 20px 25px; max-height: 85vh;} .action-buttons { justify-content: center; } .action-buttons button { padding: 0.5rem 0.9rem; font-size: 0.9em; }
+    .filter-group input[type="text"], .filter-group select { max-width: 100%; display: block; margin-bottom: 5px; } .filter-group label { display: block; margin-bottom: 3px;}
+    .stats-filters { flex-direction: column; align-items: stretch; } .stats-filters select { width: 100%; }
+}
+@media (max-width: 480px) {
+    html { font-size: 14px; } h1 { font-size: 1.6rem; } h2 { font-size: 1.3rem; }
+    .checkbox-grid { flex-direction: column; align-items: flex-start; gap: 10px;}
+    .action-buttons { flex-direction: column; align-items: stretch; } .action-buttons button { width: 100%; margin-bottom: 8px; } .action-buttons button:last-child { margin-bottom: 0; }
+    .popup-form { padding: 15px 20px; } .popup-form h2 { font-size: 1.2rem; }
+    .profile-display { padding: 10px; } .table-container { max-height: 350px; }
+}
+@media print {
+    body, html { background: #fff !important; color: #000 !important; width: 100%; height: auto; margin: 0; padding: 0; font-size: 10pt; }
+    .container, .card, .form-container { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 0 15px 0 !important; background: transparent !important; display: block !important; visibility: visible !important; opacity: 1 !important; }
+    .quick-links, #conseillerLink, button, .action-buttons, #map, .map-controls, #scan, #stats, #emailCampaign form, #profile form, .popup-form, .filter-group, #homeContainer>h1, #dashboardContainer>div:first-child p#welcomeMessage, #dashboardContainer>div:first-child button.cancel, #shareContainer, .map-options p, #mapPrintContainer { display: none !important; visibility: hidden !important; }
+    #profile, #leads, #merchants, #emailCampaign, #dashboardContainer>div:first-child h1 { display: block !important; visibility: visible !important; page-break-inside: avoid; }
+    .table-container { max-height: none !important; overflow: visible !important; border: 1px solid #ccc !important; }
+    table { width: 100% !important; font-size: 9pt !important; page-break-inside: auto; } tr { page-break-inside: avoid; page-break-after: auto; }
+    th, td { border: 1px solid #ccc !important; padding: 4px 6px !important; white-space: normal !important; word-break: break-word; }
+    thead { background-color: #eee !important; color: #000 !important; position: static !important; display: table-header-group; }
+    a { color: #000 !important; text-decoration: none !important; }
+    h1, h2, h3, h4 { color: #000 !important; margin-bottom: 10px; page-break-after: avoid; } h1 { font-size: 16pt; } h2 { font-size: 14pt; }
+    body.print-map-active > *:not(#mapPrintContainer) { display: none !important; visibility: hidden !important;}
+    body.print-map-active #mapPrintContainer { display: block !important; visibility: visible !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 10mm; box-sizing: border-box; }
+    body.print-map-active #mapPrintContainer #map { width: 100% !important; height: 90% !important; border: 1px solid #000 !important; box-shadow: none !important; }
+    body.print-map-active #mapPrintContainer .print-header { text-align: center; margin-bottom: 10px; font-size: 10pt; }
+    body.print-map-active .leaflet-control-container { display: none !important; }
+}
+    </style>
+</head>
+
+
+<!-- Fragment: Fragment 3 -->
+
+<body>
+    <div class="container" id="homeContainer">
+        <h1>Vite Loger</h1>
+        <div class="form-container" id="clientFormContainer">
+            <h2>Demande de service</h2>
+            <form id="clientForm" onsubmit="handleClientSubmit(event)">
+                <div class="form-group">
+                    <label for="clientPhone">Téléphone</label>
+                    <input type="tel" id="clientPhone" pattern="\d{10}" title="10 chiffres requis" maxlength="10" required aria-describedby="phoneError">
+                    <p id="phoneError" class="error-message" data-default-error="10 chiffres requis">10 chiffres requis</p>
+                </div>
+                <div class="form-group">
+                    <label for="clientZip">Code postal</label>
+                    <input type="text" id="clientZip" pattern="\d{5}" title="5 chiffres requis" maxlength="5" required aria-describedby="zipError">
+                    <p id="zipError" class="error-message" data-default-error="5 chiffres requis">5 chiffres requis</p>
+                </div>
+                <div class="form-group">
+                    <label>Services souhaités (sélectionnez au moins un)</label>
+                    <div class="checkbox-grid" id="clientServices">
+                        <label><input type="checkbox" name="services" value="Louer"> Louer</label>
+                        <label><input type="checkbox" name="services" value="Vendre"> Vendre</label>
+                        <label><input type="checkbox" name="services" value="Acheter"> Acheter</label>
+                        <label><input type="checkbox" name="services" value="Estimer"> Estimer</label>
+                    </div>
+                    <p id="servicesError" class="error-message" data-default-error="Sélectionnez au moins un service">Sélectionnez au moins un service</p>
+                </div>
+                <div class="form-group">
+                    <label>Horaire de rappel souhaité</label>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" id="anyTime" name="anyTime" checked> Pas de préférence (Dès que possible)</label>
+                    </div>
+                    <div id="timePickerContainer" style="display: none; margin-top: 10px;">
+                        <label for="timePicker" class="sr-only">Choisir date et heure spécifiques</label>
+                        <input type="text" id="timePicker" placeholder="Choisir une date et heure de rappel" aria-describedby="timeError">
+                    </div>
+                    <p id="timeError" class="error-message" data-default-error="Veuillez sélectionner un horaire ou cocher 'Pas de préférence'">Veuillez sélectionner un horaire ou cocher "Pas de préférence"</p>
+                </div>
+                <button type="submit"><i class="fas fa-paper-plane"></i> Envoyer ma demande</button>
+            </form>
+        </div>
+        <div id="shareContainer" style="display: none; text-align: center; margin-top: 30px;" class="card">
+            <h2>Merci !</h2>
+            <p>Votre demande a bien été envoyée. Un conseiller vous recontactera bientôt.</p>
+            <p style="margin-top: 15px;">Partagez Vite Loger avec vos proches :</p>
+            <div class="action-buttons" style="justify-content: center;">
+                <button class="share-btn" onclick="shareApp('home')" aria-label="Partager l'application"><i class="fas fa-share-alt"></i> Partager l'application</button>
+            </div>
+            <p style="margin-top: 20px;"><a href="https://viteloger.com" target="_blank" rel="noopener noreferrer">Visiter viteloger.com</a></p>
+        </div>
+        <div id="conseillerLink" style="text-align: center; margin-top: 30px;">
+            <a href="#" onclick="showConseillerForm(); return false;">Accès Espace Conseiller</a>
+        </div>
+        <div class="form-container" id="conseillerFormContainer" style="display: none;">
+            <h2>Espace Conseiller</h2>
+            <form id="conseillerForm" onsubmit="handleConseillerSubmit(event)">
+                <div class="form-group">
+                    <label for="conseillerIdentifier">Email ou Nom d'utilisateur</label>
+                    <input type="text" id="conseillerIdentifier" required aria-describedby="identifierError">
+                    <p id="identifierError" class="error-message" data-default-error="Identifiant requis">Identifiant requis</p>
+                </div>
+                <div class="form-group">
+                    <label for="conseillerCode">Mot de passe / Code d'accès</label>
+                    <input type="password" id="conseillerCode" minlength="8" required aria-describedby="codeError">
+                    <p id="codeError" class="error-message" data-default-error="8 caractères minimum requis">8 caractères minimum requis</p>
+                </div>
+                <div class="action-buttons" style="justify-content: space-between;">
+                    <button type="submit"><i class="fas fa-sign-in-alt"></i> Connexion</button>
+                    <button type="button" class="cancel" onclick="showClientForm(); return false;">Retour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="container" id="dashboardContainer" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; gap: 10px;">
+            <h1 style="margin-bottom: 0; text-align: left; flex-grow: 1;">Tableau de bord</h1>
+            <button class="cancel" onclick="logout()" style="flex-shrink: 0;"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        </div>
+        <p id="welcomeMessage" style="text-align: left; margin-bottom: 20px; font-size: 1.1em;">Bienvenue !</p>
+        <div class="quick-links">
+            <button id="toggleProfile" onclick="toggleSection('profile')" aria-label="Profil"><i class="fas fa-user"></i><span class="btn-text"> Profil</span></button>
+            <button id="toggleLeads" onclick="toggleSection('leads')" aria-label="Leads"><i class="fas fa-address-book"></i><span class="btn-text"> Leads</span></button>
+            <button id="toggleMerchants" onclick="toggleSection('merchants')" aria-label="Commerçants"><i class="fas fa-store"></i><span class="btn-text"> Commerçants</span></button>
+            <button id="toggleMapSection" onclick="toggleSection('mapSection')" aria-label="Carte"><i class="fas fa-map"></i><span class="btn-text"> Carte</span></button>
+            <button id="toggleScan" onclick="toggleSection('scan')" aria-label="Scan QR"><i class="fas fa-camera"></i><span class="btn-text"> Scan</span></button>
+            <button id="toggleEmailCampaign" onclick="toggleSection('emailCampaign')" aria-label="Campagnes Email"><i class="fas fa-envelope"></i><span class="btn-text"> Campagnes</span></button>
+            <button id="toggleStats" onclick="toggleSection('stats')" aria-label="Statistiques"><i class="fas fa-chart-bar"></i><span class="btn-text"> Stats</span></button>
+        </div>
+        <div class="card hidden" id="profile">
+            <h2>Profil Conseiller</h2>
+            <div class="profile-display" id="profileDisplay">
+                <img decoding="async" src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e0e0e0"/><text x="50" y="55" font-family="Arial" font-size="12" fill="%23888" text-anchor="middle">Pas de photo</text></svg>' class="profile-photo" id="profilePhoto" alt="Photo de profil">
+                <div>
+                    <p><strong>Nom:</strong> <span id="profileName">Conseiller</span></p>
+                    <p><strong>Email:</strong> <span id="profileEmail">email@example.com</span></p>
+                    <p><strong>Téléphone:</strong> <span id="profilePhone">0123456789</span></p>
+                    <p><strong>Site Web:</strong> <a href="https://viteloger.com" target="_blank" id="profileWebsite">viteloger.com</a></p>
+                </div>
+                <div class="action-buttons" style="flex-direction: column; align-items: flex-start;">
+                    <button onclick="editProfile()" aria-label="Modifier le profil"><i class="fas fa-edit"></i> Modifier</button>
+                    <button onclick="shareApp('conseiller')" aria-label="Partager le profil"><i class="fas fa-share-alt"></i> Partager Profil</button>
+                    <button onclick="generateQR('conseiller')" title="Générer QR Code pour ce contact"><i class="fas fa-qrcode"></i> Mon QR Code</button>
+                </div>
+            </div>
+            <form id="profileForm" style="display: none;">
+                <h3>Modifier le profil</h3>
+                <div class="form-group">
+                    <label for="editPhoto">Changer la photo (laisser vide pour garder l'actuelle)</label>
+                    <input type="file" id="editPhoto" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="editName">Nom</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPhone">Téléphone</label>
+                    <input type="tel" id="editPhone" pattern="\d{10}" title="10 chiffres requis" maxlength="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="editLat">Latitude (sera mise à jour si géolocalisation active)</label>
+                    <input type="number" id="editLat" step="any" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editLng">Longitude (sera mise à jour si géolocalisation active)</label>
+                    <input type="number" id="editLng" step="any" readonly>
+                </div>
+                <div class="action-buttons">
+                    <button type="button" onclick="saveProfile()"><i class="fas fa-save"></i> Sauvegarder</button>
+                    <button type="button" class="cancel" onclick="cancelEdit()"><i class="fas fa-times"></i> Annuler</button>
+                </div>
+            </form>
+        </div>
+
+
+<!-- Fragment: Fragment 4 -->
+<div class="card hidden" id="leads">
+    <h2>Gestion des Leads</h2>
+    <div class="filter-group">
+        <label for="leadFilter" class="sr-only">Filtrer</label>
+        <input type="text" id="leadFilter" placeholder="Filtrer les leads (par nom, tél, cp...)" onkeyup="updateLeadsTable()">
+    </div>
+    <div class="table-container">
+        <table id="leadsTable">
+            <thead>
+                <tr>
+                    <th style="width: 30px;"><input type="checkbox" id="selectAllLeads" onclick="toggleSelectAll('leads')" title="Tout sélectionner"></th>
+                    <th onclick="sortTable('leads', 'id')">Fiche</th>
+                    <th onclick="sortTable('leads', 'name')">Nom</th>
+                    <th onclick="sortTable('leads', 'phone')">Téléphone</th>
+                    <th onclick="sortTable('leads', 'zip')">CP</th>
+                    <th onclick="sortTable('leads', 'services')">Services</th>
+                    <th onclick="sortTable('leads', 'time')">Horaire/Note</th>
+                    <th onclick="sortTable('leads', 'date')">Date Dem.</th>
+                    <th onclick="sortTable('leads', 'status')">Statut</th>
+                    <th onclick="sortTable('leads', 'notes')">Notes</th>
+                    <th style="text-align: center;">Carte</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="leadsTableBody">
+                <tr><td colspan="12" style="text-align: center; padding: 20px;">Chargement des leads...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="action-buttons">
+        <button onclick="printSelected('leads')"><i class="fas fa-print"></i> Imprimer Sélection</button>
+        <button onclick="shareSelected('leads')"><i class="fas fa-share-alt"></i> Partager Sélection</button>
+        <button class="cancel" onclick="deleteSelected('leads')"><i class="fas fa-archive"></i> Archiver Sélection</button>
+        <button onclick="openArchivePopup('leads')"><i class="fas fa-folder-open"></i> Voir Archives Leads</button>
+    </div>
+</div>
+<div class="card hidden" id="merchants">
+    <h2>Gestion des Commerçants</h2>
+    <div class="filter-group">
+        <label for="merchantFilter" class="sr-only">Filtrer</label>
+        <input type="text" id="merchantFilter" placeholder="Filtrer les commerçants (par nom, activité, cp...)" onkeyup="updateMerchantsTable()">
+    </div>
+    <div class="table-container">
+        <table id="merchantTable">
+            <thead>
+                <tr>
+                    <th style="width: 30px;"><input type="checkbox" id="selectAllMerchants" onclick="toggleSelectAll('merchants')" title="Tout sélectionner"></th>
+                    <th onclick="sortTable('merchants', 'id')">Fiche</th>
+                    <th onclick="sortTable('merchants', 'name')">Nom</th>
+                    <th onclick="sortTable('merchants', 'activity')">Activité</th>
+                    <th onclick="sortTable('merchants', 'address')">Adresse</th>
+                    <th onclick="sortTable('merchants', 'cp')">CP</th>
+                    <th onclick="sortTable('merchants', 'phone')">Téléphone</th>
+                    <th onclick="sortTable('merchants', 'email')">Email</th>
+                    <th onclick="sortTable('merchants', 'gerant')">Gérant</th>
+                    <th style="text-align: center;">Carte</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="merchantTableBody">
+                <tr><td colspan="11" style="text-align: center; padding: 20px;">Chargement des commerçants...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="action-buttons">
+        <button onclick="addNewMerchant()"><i class="fas fa-plus"></i> Ajouter Commerçant</button>
+        <button onclick="printSelected('merchants')"><i class="fas fa-print"></i> Imprimer Sélection</button>
+        <button onclick="shareSelected('merchants')"><i class="fas fa-share-alt"></i> Partager Sélection</button>
+        <button class="cancel" onclick="deleteSelected('merchants')"><i class="fas fa-archive"></i> Archiver Sélection</button>
+        <button onclick="openArchivePopup('merchants')"><i class="fas fa-folder-open"></i> Voir Archives Commerçants</button>
+    </div>
+</div>
+<div class="card hidden" id="mapSection">
+    <h2>Carte Interactive</h2>
+    <div class="map-controls">
+        <div class="map-filters">
+            <div>
+                <h3>Filtres d'affichage</h3>
+                <label><input type="checkbox" id="filterConseiller" checked onchange="updateMap()"> <i class="fas fa-user-tie" style="color: blue;"></i> Mon Emplacement</label>
+                <div class="filter-group" style="margin-left: 20px; border-left: 2px solid var(--primary-light); padding-left: 10px; margin-top: 10px;">
+                    <h4><i class="fas fa-address-book" style="color: green;"></i> Leads</h4>
+                    <label><input type="checkbox" id="filterLeadsNew" checked onchange="updateMap()"> Nouveaux</label>
+                    <label><input type="checkbox" id="filterLeadsRecall" checked onchange="updateMap()"> À rappeler</label>
+                    <label><input type="checkbox" id="filterLeadsNoRecall" checked onchange="updateMap()"> Ne pas rappeler</label>
+                    <label><input type="checkbox" id="filterLeadsFake" checked onchange="updateMap()"> Faux</label>
+                    <label><input type="checkbox" id="filterLeadsFavorite" checked onchange="updateMap()"> Favori</label>
+                    <label><input type="checkbox" id="filterLeadsConverted" checked onchange="updateMap()"> Converti/Traité</label>
+                </div>
+                <label style="margin-top: 10px;"><input type="checkbox" id="filterMerchants" checked onchange="updateMap()"> <i class="fas fa-store" style="color: red;"></i> Commerçants</label>
+                <label><input type="checkbox" id="filterEmails" onchange="updateMap()"> <i class="fas fa-envelope" style="color: orange;"></i> Emails (si géolocalisés)</label>
+                <label><input type="checkbox" id="filterRepartage" onchange="updateMap()"> <i class="fas fa-share-alt" style="color: purple;"></i> Repartage (Exemple)</label>
+            </div>
+            <div class="map-options">
+                <h3>Options Carte</h3>
+                <p style="font-size: 0.9em;">Carte fournie par © OpenStreetMap contributors.</p>
+                <div class="action-buttons" style="flex-direction: column; align-items: stretch; gap: 8px; margin-top: 15px;">
+                    <button onclick="centerOnPosition()"><i class="fas fa-location-arrow"></i> Centrer sur ma position</button>
+                    <button onclick="addMapMarker()"><i class="fas fa-map-marker-alt"></i> Ajouter Marqueur perso</button>
+                    <button onclick="printMap()"><i class="fas fa-print"></i> Imprimer Vue Carte</button>
+                    <button onclick="shareMap()"><i class="fas fa-share-alt"></i> Partager Vue Carte</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="map"></div>
+</div>
+<div class="card hidden" id="scan">
+    <h2>Scanner un QR Code</h2>
+    <div class="scan-instructions">
+        <p>Positionnez le QR code d'un contact ou d'un commerçant dans le cadre ci-dessous. Les informations reconnues seront utilisées pour créer une fiche Lead ou Commerçant.</p>
+    </div>
+    <div class="action-buttons" style="justify-content: center;">
+        <button onclick="startScan()"><i class="fas fa-camera"></i> Démarrer le scan</button>
+        <button onclick="triggerQRUpload()"><i class="fas fa-upload"></i> Scanner depuis Fichier</button>
+    </div>
+</div>
+
+<!-- Fragment: Fragment 5 -->
+<div class="card hidden" id="emailCampaign">
+    <h2>Campagnes Email</h2>
+    <p style="margin-bottom: 15px; font-size: 0.9em;">Envoyez des emails individuels via EmailJS (configuration requise). Les pièces jointes sont mentionnées dans le corps du message.</p>
+    <form id="emailForm" onsubmit="sendEmailCampaign(event)">
+        <div class="form-group">
+            <label for="emailRecipient">Destinataire (Email)</label>
+            <input type="email" id="emailRecipient" required>
+        </div>
+        <div class="form-group">
+            <label for="emailSubject">Objet</label>
+            <input type="text" id="emailSubject" required>
+        </div>
+        <div class="form-group">
+            <label for="emailBody">Message</label>
+            <textarea id="emailBody" rows="5" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="emailAttachments">Pièces jointes (Max 10 - Noms listés dans l'email)</label>
+            <input type="file" id="emailAttachments" multiple accept="*/*" onchange="updateAttachmentList()">
+            <p style="font-size: 0.8em; margin-top: 5px;">Note : Les fichiers ne sont pas envoyés directement. Leurs noms seront ajoutés au message.</p>
+            <ul id="attachmentList" style="font-size: 0.9em; list-style: none; padding-left: 0; margin-top: 5px;"></ul>
+        </div>
+        <div class="action-buttons">
+            <button type="submit"><i class="fas fa-paper-plane"></i> Envoyer Email</button>
+            <button type="button" onclick="saveEmailCampaign()"><i class="fas fa-save"></i> Sauvegarder Brouillon</button>
+            <button type="button" onclick="restoreEmailCampaign()"><i class="fas fa-history"></i> Charger Brouillon</button>
+        </div>
+    </form>
+    <hr style="margin: 30px 0; border-color: var(--light-border);">
+    <h3>Historique des Emails Envoyés</h3>
+    <div class="filter-group">
+        <label for="emailFilter" class="sr-only">Filtrer</label>
+        <input type="text" id="emailFilter" placeholder="Filtrer les emails (par destinataire, objet...)" onkeyup="updateEmailTable()">
+    </div>
+    <div class="table-container">
+        <table id="emailTable">
+            <thead>
+                <tr>
+                    <th style="width: 30px;"><input type="checkbox" id="selectAllEmails" onclick="toggleSelectAll('emails')" title="Tout sélectionner"></th>
+                    <th onclick="sortTable('emails', 'id')">Fiche</th>
+                    <th onclick="sortTable('emails', 'recipient')">Destinataire</th>
+                    <th onclick="sortTable('emails', 'subject')">Objet</th>
+                    <th onclick="sortTable('emails', 'date')">Date Envoi</th>
+                    <th onclick="sortTable('emails', 'openDate')">Date Ouv.</th>
+                    <th style="text-align: center;">Carte</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="emailTableBody">
+                <tr><td colspan="8" style="text-align: center; padding: 20px;">Chargement de l'historique...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="action-buttons">
+        <button onclick="printSelected('emails')"><i class="fas fa-print"></i> Imprimer Sélection</button>
+        <button onclick="shareSelected('emails')"><i class="fas fa-share-alt"></i> Partager Sélection</button>
+        <button class="cancel" onclick="deleteSelected('emails')"><i class="fas fa-archive"></i> Archiver Sélection</button>
+        <button onclick="openArchivePopup('emails')"><i class="fas fa-folder-open"></i> Voir Archives Emails</button>
+    </div>
+</div>
+<div class="card hidden" id="stats">
+    <h2>Statistiques Visuelles</h2>
+    <div class="stats-filters">
+        <div class="filter-group">
+            <label for="statsType">Type:</label>
+            <select id="statsType" onchange="updateStats()">
+                <option value="bar">Barres</option>
+                <option value="pie">Circulaire</option>
+                <option value="line">Lignes</option>
+                <option value="doughnut">Donut</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="statsFilter">Données:</label>
+            <select id="statsFilter" onchange="updateStats()">
+                <option value="all">Leads par Statut</option>
+                <option value="merchants">Commerçants par Activité</option>
+                <option value="emails">Emails par Mois</option>
+                <option value="leadsByService">Leads par Service</option>
+            </select>
+        </div>
+    </div>
+    <div style="position: relative; height:350px; width:100%; max-width: 700px; margin: 20px auto;">
+        <canvas id="statsChart"></canvas>
+    </div>
+    <div class="action-buttons">
+        <button onclick="saveStats()"><i class="fas fa-save"></i> Sauvegarder Vue</button>
+        <button onclick="restoreStats()"><i class="fas fa-history"></i> Charger Vue</button>
+    </div>
+</div>
+<div class="popup-form" id="scanPopup">
+    <h2>Scan QR Code</h2>
+    <video id="scanVideo" class="scan-video" autoplay playsinline muted></video>
+    <canvas id="scanCanvas" style="display: none;"></canvas>
+    <div class="action-buttons">
+        <button class="cancel" onclick="stopScan()"><i class="fas fa-times"></i> Annuler Scan</button>
+    </div>
+</div>
+<div class="popup-form" id="merchantFormPopup">
+    <h2 id="merchantPopupTitle">Fiche Commerçant</h2>
+    <form id="merchantForm" onsubmit="event.preventDefault(); saveMerchant();">
+        <input type="hidden" id="merchantId">
+        <div class="form-group"><label for="merchantDisplayId">ID Fiche</label><input type="text" id="merchantDisplayId" readonly class="read-as-text"></div>
+        <div class="form-group"><label for="merchantName">Nom</label><input type="text" id="merchantName" required readonly></div>
+        <div class="form-group"><label for="merchantActivity">Activité</label><input type="text" id="merchantActivity" required readonly></div>
+        <div class="form-group"><label for="merchantAddress">Adresse</label><input type="text" id="merchantAddress" required readonly></div>
+        <div class="form-group"><label for="merchantCP">Code Postal (CP)</label><input type="text" id="merchantCP" pattern="\d{5}" title="5 chiffres requis" maxlength="5" readonly></div>
+        <div class="form-group"><label for="merchantPhone">Téléphone</label><input type="tel" id="merchantPhone" pattern="\d{10}" title="10 chiffres requis" maxlength="10" required readonly></div>
+        <div class="form-group"><label for="merchantEmail">Email</label><input type="email" id="merchantEmail" readonly></div>
+        <div class="form-group"><label for="merchantGerant">Nom du Gérant</label><input type="text" id="merchantGerant" readonly></div>
+        <div class="form-group"><label for="merchantLat">Latitude</label><input type="number" id="merchantLat" step="any" readonly></div>
+        <div class="form-group"><label for="merchantLng">Longitude</label><input type="number" id="merchantLng" step="any" readonly></div>
+        <div class="action-buttons">
+            <button type="button" id="editMerchantBtn" onclick="editForm('merchantForm')"><i class="fas fa-edit"></i> Modifier</button>
+            <button type="button" id="saveMerchantBtn" onclick="saveMerchant()" disabled><i class="fas fa-save"></i> Sauvegarder</button>
+            <button type="button" id="deleteMerchantBtn" onclick="deleteMerchantForm()" class="cancel"><i class="fas fa-archive"></i> Archiver</button>
+            <button type="button" onclick="generateQR('merchant')" title="Générer QR Code pour ce commerçant"><i class="fas fa-qrcode"></i> QR Code</button>
+            <button type="button" class="cancel" onclick="closeMerchantForm()"><i class="fas fa-times"></i> Fermer</button>
+        </div>
+    </form>
+</div>
+<div class="popup-form" id="leadFormPopup">
+    <h2 id="leadPopupTitle">Fiche Lead</h2>
+    <form id="leadForm" onsubmit="event.preventDefault(); saveLead();">
+        <input type="hidden" id="leadId">
+        <div class="form-group"><label for="leadDisplayId">ID Fiche</label><input type="text" id="leadDisplayId" readonly class="read-as-text"></div>
+        <div class="form-group"><label for="leadName">Nom (Optionnel)</label><input type="text" id="leadName" readonly></div>
+        <div class="form-group"><label for="leadPhone">Téléphone</label><input type="tel" id="leadPhone" pattern="\d{10}" title="10 chiffres requis" maxlength="10" required readonly></div>
+        <div class="form-group"><label for="leadEmail">Email (Optionnel)</label><input type="email" id="leadEmail" readonly></div>
+        <div class="form-group"><label for="leadAddress">Adresse (Optionnel)</label><input type="text" id="leadAddress" readonly></div>
+        <div class="form-group"><label for="leadZip">Code postal</label><input type="text" id="leadZip" pattern="\d{5}" title="5 chiffres requis" maxlength="5" required readonly></div>
+        <div class="form-group"><label for="leadServices">Services demandés</label><input type="text" id="leadServices" required readonly></div>
+        <div class="form-group"><label for="leadTime">Horaire souhaité / Commentaire</label><input type="text" id="leadTime" required readonly></div>
+        <div class="form-group"><label for="leadDate">Date de la demande</label><input type="text" id="leadDate" required readonly class="read-as-text"></div>
+        <div class="form-group"><label for="leadStatus">Statut</label><select id="leadStatus" disabled><option value="Nouveau">Nouveau</option><option value="À rappeler">À rappeler</option><option value="Ne pas rappeler">Ne pas rappeler</option><option value="Faux">Faux</option><option value="Favori">Favori</option><option value="Converti">Converti / Traité</option></select></div>
+        <div class="form-group" id="recallDateContainer" style="display: none;"><label for="leadRecallDate">Date et heure du prochain rappel</label><input type="text" id="leadRecallDate" readonly placeholder="Choisir une date et heure"></div>
+        <div class="form-group"><label for="leadNotes">Notes</label><textarea id="leadNotes" rows="3" readonly></textarea></div>
+        <div class="form-group"><label for="leadLat">Latitude</label><input type="number" id="leadLat" step="any" readonly></div>
+        <div class="form-group"><label for="leadLng">Longitude</label><input type="number" id="leadLng" step="any" readonly></div>
+        <div class="action-buttons">
+            <button type="button" id="editLeadBtn" onclick="editForm('leadForm')"><i class="fas fa-edit"></i> Modifier</button>
+            <button type="button" id="saveLeadBtn" onclick="saveLead()" disabled><i class="fas fa-save"></i> Sauvegarder</button>
+            <button type="button" id="deleteLeadBtn" onclick="deleteLeadForm()" class="cancel"><i class="fas fa-archive"></i> Archiver</button>
+            <button type="button" class="cancel" onclick="closeLeadForm()"><i class="fas fa-times"></i> Fermer</button>
+        </div>
+    </form>
+</div>
+<div class="popup-form" id="emailFormPopup">
+    <h2 id="emailPopupTitle">Détail Email Envoyé</h2>
+    <form id="emailEditForm">
+        <input type="hidden" id="emailEditId">
+        <div class="form-group"><label for="emailEditIdDisplay">ID Email</label><input type="text" id="emailEditIdDisplay" readonly class="read-as-text"></div>
+        <div class="form-group"><label for="emailEditRecipient">Destinataire</label><input type="email" id="emailEditRecipient" required readonly class="read-as-text"></div>
+        <div class="form-group"><label for="emailEditSubject">Objet</label><input type="text" id="emailEditSubject" required readonly class="read-as-text"></div>
+        <div class="form-group"><label for="emailEditBody">Message Envoyé</label><textarea id="emailEditBody" rows="6" required readonly style="white-space: pre-wrap;" class="read-as-text"></textarea></div>
+        <div class="form-group"><label for="emailEditDate">Date d'envoi</label><input type="text" id="emailEditDate" readonly class="read-as-text"></div>
+        <div class="form-group"><label for="emailEditOpenDate">Date d'ouverture (si suivie)</label><input type="text" id="emailEditOpenDate" readonly class="read-as-text"></div>
+        <div class="form-group"><label for="emailEditLat">Latitude (si géolocalisé)</label><input type="number" id="emailEditLat" step="any" readonly class="read-as-text"></div>
+        <div class="form-group"><label for="emailEditLng">Longitude (si géolocalisé)</label><input type="number" id="emailEditLng" step="any" readonly class="read-as-text"></div>
+        <div class="action-buttons">
+            <button type="button" id="deleteEmailBtn" onclick="deleteEmailForm()" class="cancel"><i class="fas fa-archive"></i> Archiver</button>
+            <button type="button" class="cancel" onclick="closeEmailForm()"><i class="fas fa-times"></i> Fermer</button>
+        </div>
+    </form>
+</div>
+<div class="popup-form" id="qrPopup">
+    <h2>QR Code Généré</h2>
+    <div id="qrCodeContainer"><p>Génération du QR Code...</p></div>
+    <input type="file" id="uploadQR" accept="image/*" style="display: none;">
+    <div class="action-buttons">
+        <button onclick="shareQR()"><i class="fas fa-share-alt"></i> Partager</button>
+        <button onclick="downloadQR()"><i class="fas fa-download"></i> Télécharger</button>
+        <button onclick="triggerQRUpload()"><i class="fas fa-upload"></i> Scanner Fichier QR</button>
+        <button class="cancel" onclick="closeQrPopup()"><i class="fas fa-times"></i> Fermer</button>
+    </div>
+</div>
+<div class="popup-form" id="archivePopup" style="max-width: 800px;">
+    <h2>Archives</h2>
+    <div class="filter-group"><label for="archiveFilter" class="sr-only">Filtrer</label><input type="text" id="archiveFilter" placeholder="Filtrer les archives..." onkeyup="updateArchiveTable()"></div>
+    <div class="table-container" style="max-height: 60vh;"><table id="archiveTable"><thead><tr><th onclick="sortArchiveTable('id')">ID</th><th onclick="sortArchiveTable('name')">Nom / Info Principale</th><th onclick="sortArchiveTable('type')">Type</th><th onclick="sortArchiveTable('deleteDate')">Date Archivage</th><th style="text-align: center;">Action</th></tr></thead><tbody id="archiveTableBody"><tr><td colspan="5" style="text-align: center; padding: 20px;">Chargement des archives...</td></tr></tbody></table></div>
+    <div class="action-buttons"><button class="cancel" onclick="closeArchivePopup()"><i class="fas fa-times"></i> Fermer</button></div>
+</div>
+<div id="mapPrintContainer" style="display: none;"></div>
+
+<!-- Fragment: Fragment 6 -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<script>
+const EMAILJS_USER_ID = 'user_your_user_id_here';
+const EMAILJS_SERVICE_ID = 'viteloger';
+const EMAILJS_TEMPLATE_ID = 'template_viteloger';
+let map = null;
+let markers = null;
+let statsChart = null;
+let videoStream = null;
+let sortState = { leads: {}, merchants: {}, emails: {}, archive: {} };
+let currentConseiller = null;
+let sampleDataAdded = localStorage.getItem('sampleDataAdded') === 'true';
+let currentEditableFormId = null;
+let uploadedQRData = null;
+let currentArchiveType = null;
+let mapInitializationAttempted = false;
+function createLeafletIcon(color) {
+    const baseUrl = 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/';
+    try {
+        if (typeof L === 'undefined' || !L.icon) return new L.Icon.Default();
+        return L.icon({
+            iconUrl: `${baseUrl}marker-icon-2x-${color}.png`,
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+    } catch (error) {
+        return new L.Icon.Default();
+    }
+}
+let blueIcon, greenIcon, redIcon, orangeIcon, purpleIcon, goldIcon;
+document.addEventListener('DOMContentLoaded', () => {
+    blueIcon = createLeafletIcon('blue');
+    greenIcon = createLeafletIcon('green');
+    redIcon = createLeafletIcon('red');
+    orangeIcon = createLeafletIcon('orange');
+    purpleIcon = createLeafletIcon('purple');
+    goldIcon = createLeafletIcon('gold');
+    if (EMAILJS_USER_ID && EMAILJS_USER_ID !== 'user_your_user_id_here') {
+        try {
+            emailjs.init(EMAILJS_USER_ID);
+        } catch (error) {
+            alert("Erreur EmailJS.");
+        }
+    }
+    try {
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr.localize(flatpickr.l10ns.fr);
+            flatpickr('#timePicker', {
+                enableTime: true,
+                dateFormat: 'd/m/Y H:i',
+                minuteIncrement: 15,
+                altInput: true,
+                altFormat: "j F Y à H:i"
+            });
+            flatpickr('#leadRecallDate', {
+                enableTime: true,
+                dateFormat: 'd/m/Y H:i',
+                minuteIncrement: 15,
+                altInput: true,
+                altFormat: "j F Y à H:i"
+            });
+        }
+    } catch (error) {}
+    setupEventListeners();
+    setupColorSchemeListener();
+    currentConseiller = loadData('conseiller');
+    if (currentConseiller && currentConseiller.email) {
+        switchToDashboard();
+        if (!sampleDataAdded) {
+            addSampleData();
+            sampleDataAdded = true;
+            localStorage.setItem('sampleDataAdded', 'true');
+        }
+    } else {
+        showClientForm();
+        requestGeolocation('client');
+    }
+    const qrUploadInput = document.getElementById('uploadQR');
+    if (qrUploadInput) qrUploadInput.addEventListener('change', handleQRUpload);
+});
+function setupEventListeners() {
+    const anyTimeCheckbox = document.getElementById('anyTime');
+    if (anyTimeCheckbox) {
+        anyTimeCheckbox.addEventListener('change', e => {
+            const timePickerContainer = document.getElementById('timePickerContainer');
+            const timePickerInput = document.getElementById('timePicker');
+            if (timePickerContainer && timePickerInput) {
+                timePickerContainer.style.display = e.target.checked ? 'none' : 'block';
+                if (!e.target.checked && typeof flatpickr !== 'undefined') {
+                    flatpickr(timePickerInput).open();
+                } else if (e.target.checked && typeof flatpickr !== 'undefined') {
+                    flatpickr(timePickerInput).clear();
+                }
+            }
+        });
+    }
+    const leadStatusSelect = document.getElementById('leadStatus');
+    if (leadStatusSelect) {
+        leadStatusSelect.addEventListener('change', e => {
+            const recallContainer = document.getElementById('recallDateContainer');
+            const recallInput = document.getElementById('leadRecallDate');
+            if (recallContainer && recallInput && currentEditableFormId === 'leadForm') {
+                const showRecall = e.target.value === 'À rappeler';
+                recallContainer.style.display = showRecall ? 'block' : 'none';
+                recallInput.readOnly = !showRecall;
+                if (showRecall && typeof flatpickr !== 'undefined') {
+                    flatpickr(recallInput, {
+                        enableTime: true,
+                        dateFormat: 'd/m/Y H:i',
+                        minuteIncrement: 15,
+                        altInput: true,
+                        altFormat: "j F Y à H:i"
+                    }).open();
+                }
+            }
+        });
+    }
+}
+function setupColorSchemeListener() {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const applyTheme = (matches) => {
+        document.documentElement.setAttribute('data-theme', matches ? 'dark' : 'light');
+        if (statsChart) updateStats();
+        const tileLayer = document.querySelector('.leaflet-tile-pane');
+        if (tileLayer) tileLayer.style.filter = matches ? 'brightness(0.8) contrast(1.1)' : 'none';
+    };
+    applyTheme(mediaQuery.matches);
+    try {
+        mediaQuery.addEventListener('change', e => applyTheme(e.matches));
+    } catch {
+        try {
+            mediaQuery.addListener(e => applyTheme(e.matches));
+        } catch {}
+    }
+}
+function saveData(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+        return true; // Indique succès
+    } catch (error) {
+        if (error.name === 'QuotaExceededError') {
+            alert("Stockage local plein. Supprimez des archives ou données.");
+        } else {
+            alert(`Erreur sauvegarde "${key}": ${error.message}`);
+        }
+        throw error; // Propager l'erreur
+    }
+}
+function loadData(key) {
+    try {
+        const data = localStorage.getItem(key);
+        if (data === null) return key.endsWith('s') || key === 'archive' ? [] : null;
+        return JSON.parse(data);
+    } catch {
+        if (!key.endsWith('_backup')) {
+            const backupData = restoreBackup(key);
+            if (backupData) {
+                alert(`Données restaurées backup "${key}".`);
+                return backupData;
+            }
+        }
+        return key.endsWith('s') || key === 'archive' ? [] : null;
+    }
+}
+function saveItem(type, id, data) {
+    const listKey = type.endsWith('s') ? type : `${type}s`;
+    let items = loadData(listKey) || [];
+    // Nettoyer les éléments invalides
+    items = items.filter(item => item && item.id);
+    const index = items.findIndex(item => item.id === id);
+    const itemData = { id, ...data };
+    if (index !== -1) {
+        items[index] = itemData;
+    } else {
+        items.push(itemData);
+    }
+    // Sauvegarde principale
+    const saved = saveData(listKey, items);
+    if (saved) {
+        // Sauvegarde backup uniquement si principale réussit
+        saveData(`${listKey}_backup`, items);
+    }
+    return saved;
+}
+function restoreBackup(key) {
+    const backupData = loadData(`${key}_backup`);
+    if (backupData !== null) {
+        const isValid = (key.endsWith('s') || key === 'archive') ? Array.isArray(backupData) : true;
+        if (isValid) {
+            saveData(key, backupData);
+            return backupData;
+        }
+    }
+    return null;
+}
+function showClientForm() {
+    const homeContainer = document.getElementById('homeContainer');
+    const dashboardContainer = document.getElementById('dashboardContainer');
+    const clientFormContainer = document.getElementById('clientFormContainer');
+    const shareContainer = document.getElementById('shareContainer');
+    const conseillerFormContainer = document.getElementById('conseillerFormContainer');
+    const conseillerLink = document.getElementById('conseillerLink');
+    if (homeContainer) homeContainer.style.display = 'block';
+    if (dashboardContainer) dashboardContainer.style.display = 'none';
+    if (clientFormContainer) clientFormContainer.style.display = 'block';
+    if (shareContainer) shareContainer.style.display = 'none';
+    if (conseillerFormContainer) conseillerFormContainer.style.display = 'none';
+    if (conseillerLink) conseillerLink.style.display = 'block';
+    document.getElementById('clientForm')?.reset();
+    document.getElementById('conseillerForm')?.reset();
+    const timePickerContainer = document.getElementById('timePickerContainer');
+    const anyTimeCheckbox = document.getElementById('anyTime');
+    if (timePickerContainer) timePickerContainer.style.display = 'none';
+    if (anyTimeCheckbox) anyTimeCheckbox.checked = true;
+    const timePickerInput = document.getElementById('timePicker');
+    if (timePickerInput && typeof flatpickr !== 'undefined') flatpickr(timePickerInput).clear();
+    resetErrors();
+}
+function showConseillerForm() {
+    const clientFormContainer = document.getElementById('clientFormContainer');
+    const shareContainer = document.getElementById('shareContainer');
+    const conseillerFormContainer = document.getElementById('conseillerFormContainer');
+    const conseillerLink = document.getElementById('conseillerLink');
+    if (conseillerFormContainer) conseillerFormContainer.style.display = 'block';
+    if (conseillerLink) conseillerLink.style.display = 'none';
+    if (clientFormContainer) clientFormContainer.style.display = 'none';
+    if (shareContainer) shareContainer.style.display = 'none';
+    document.getElementById('conseillerIdentifier')?.focus();
+    resetErrors();
+}
+function switchToDashboard() {
+    const homeContainer = document.getElementById('homeContainer');
+    const dashboardContainer = document.getElementById('dashboardContainer');
+    if (homeContainer) homeContainer.style.display = 'none';
+    if (dashboardContainer) dashboardContainer.style.display = 'block';
+    updateProfileDisplay();
+    updateAllTables();
+    if (!mapInitializationAttempted) {
+        mapInitializationAttempted = true;
+        try {
+            if (typeof L !== 'undefined') initMap();
+        } catch {}
+    } else if (map) {
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+    toggleSection('profile');
+}
+function logout() {
+    if (!confirm('Déconnexion ?')) return;
+    currentConseiller = null;
+    localStorage.removeItem('conseiller');
+    localStorage.removeItem('conseiller_backup');
+    if (map) {
+        map.remove();
+        map = null;
+        markers = null;
+    }
+    if (statsChart) {
+        statsChart.destroy();
+        statsChart = null;
+    }
+    sortState = { leads: {}, merchants: {}, emails: {}, archive: {} };
+    mapInitializationAttempted = false;
+    showClientForm();
+}
+function toggleSection(sectionId) {
+    document.querySelectorAll('#dashboardContainer .card').forEach(card => card.classList.add('hidden'));
+    const targetCard = document.getElementById(sectionId);
+    if (targetCard) {
+        targetCard.classList.remove('hidden');
+        if (sectionId === 'mapSection') {
+            if (!map && !mapInitializationAttempted) {
+                mapInitializationAttempted = true;
+                try {
+                    if (typeof L !== 'undefined') initMap();
+                } catch {}
+            } else if (map) {
+                setTimeout(() => {
+                    map.invalidateSize();
+                    updateMap();
+                }, 150);
+            }
+        } else if (sectionId === 'stats') {
+            updateStats();
+        }
+    }
+    document.querySelectorAll('.quick-links button').forEach(btn => btn.classList.remove('active'));
+    const buttonId = `toggle${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`;
+    const activeButton = document.getElementById(buttonId);
+    if (activeButton) activeButton.classList.add('active');
+}
+function requestGeolocation(type, callbackSuccess, callbackError) {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                if (type === 'conseiller' && currentConseiller) {
+                    currentConseiller.lat = coords.lat;
+                    currentConseiller.lng = coords.lng;
+                    saveData('conseiller', currentConseiller);
+                    if (document.getElementById('profileForm')?.style.display !== 'none') {
+                        setInputValue('editLat', coords.lat);
+                        setInputValue('editLng', coords.lng);
+                    }
+                    if (map) updateMap();
+                }
+                if (callbackSuccess) callbackSuccess(coords);
+            },
+            err => {
+                if (type !== 'client') alert("Erreur géolocalisation.");
+                if (callbackError) callbackError(err);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    } else {
+        if (type !== 'client') alert('Géolocalisation non supportée.');
+        if (callbackError) callbackError(new Error('Geolocation not supported'));
+    }
+}
+function showOnMap(lat, lng, typeSingulier) {
+    if (lat == null || lng == null) {
+        alert("Coordonnées manquantes.");
+        return;
+    }
+    toggleSection('mapSection');
+    if (!map && !mapInitializationAttempted) {
+        mapInitializationAttempted = true;
+        try {
+            if (typeof L !== 'undefined') initMap();
+        } catch {}
+    }
+    setTimeout(() => {
+        if (map) {
+            map.flyTo([lat, lng], 16);
+            const tempMarker = L.marker([lat, lng], { icon: goldIcon, zIndexOffset: 2000 })
+                .bindPopup(`Position ${typeSingulier}<br>${lat.toFixed(5)}, ${lng.toFixed(5)}`)
+                .addTo(map).openPopup();
+            setTimeout(() => map.hasLayer(tempMarker) && map.removeLayer(tempMarker), 5000);
+            tempMarker.on('popupclose', () => map.hasLayer(tempMarker) && map.removeLayer(tempMarker));
+        }
+    }, 300);
+}
+function handleClientSubmit(e) {
+    e.preventDefault();
+    resetErrors();
+    const phoneInput = document.getElementById('clientPhone');
+    const zipInput = document.getElementById('clientZip');
+    const servicesCheckboxes = document.querySelectorAll('#clientServices input[name="services"]:checked');
+    const anyTimeCheckbox = document.getElementById('anyTime');
+    const timePickerInput = document.getElementById('timePicker');
+    let isValid = true;
+    if (!phoneInput || !phoneInput.checkValidity()) {
+        document.getElementById('phoneError').classList.add('visible');
+        isValid = false;
+    }
+    if (!zipInput || !zipInput.checkValidity()) {
+        document.getElementById('zipError').classList.add('visible');
+        isValid = false;
+    }
+    if (servicesCheckboxes.length === 0) {
+        document.getElementById('servicesError').classList.add('visible');
+        isValid = false;
+    }
+    let timeValue = 'Dès que possible';
+    if (!anyTimeCheckbox?.checked && !timePickerInput?.value) {
+        document.getElementById('timeError').classList.add('visible');
+        isValid = false;
+    } else if (!anyTimeCheckbox?.checked) {
+        timeValue = timePickerInput.value;
+    }
+    if (!isValid) return;
+    const services = Array.from(servicesCheckboxes).map(cb => cb.value);
+    const newLead = {
+        id: Date.now().toString(),
+        name: '',
+        phone: phoneInput.value.trim(),
+        email: '',
+        address: '',
+        zip: zipInput.value.trim(),
+        services: services.join(', '),
+        time: timeValue,
+        date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        status: 'Nouveau',
+        notes: 'Soumis via client.',
+        lat: null,
+        lng: null,
+        recallDate: null
+    };
+    requestGeolocation('client_submit',
+        coords => {
+            newLead.lat = coords.lat;
+            newLead.lng = coords.lng;
+            finalizeLeadSubmission(newLead);
+        },
+        () => finalizeLeadSubmission(newLead)
+    );
+}
+function finalizeLeadSubmission(leadData) {
+    try {
+        saveItem('leads', leadData.id, leadData);
+        showSuccessMessage();
+        if (document.getElementById('dashboardContainer')?.style.display === 'block') {
+            updateLeadsTable();
+            if (map) updateMap();
+        }
+    } catch {
+        alert("Erreur enregistrement demande.");
+    }
+}
+function showSuccessMessage() {
+    const clientFormContainer = document.getElementById('clientFormContainer');
+    const conseillerLink = document.getElementById('conseillerLink');
+    const conseillerFormContainer = document.getElementById('conseillerFormContainer');
+    const shareContainer = document.getElementById('shareContainer');
+    if (clientFormContainer) clientFormContainer.style.display = 'none';
+    if (conseillerLink) conseillerLink.style.display = 'none';
+    if (conseillerFormContainer) conseillerFormContainer.style.display = 'none';
+    if (shareContainer) shareContainer.style.display = 'block';
+    const clientForm = document.getElementById('clientForm');
+    if (clientForm) {
+        clientForm.reset();
+        const timePickerContainer = document.getElementById('timePickerContainer');
+        const anyTimeCheckbox = document.getElementById('anyTime');
+        if (timePickerContainer) timePickerContainer.style.display = 'none';
+        if (anyTimeCheckbox) anyTimeCheckbox.checked = true;
+        const timePickerInput = document.getElementById('timePicker');
+        if (timePickerInput && typeof flatpickr !== 'undefined') flatpickr(timePickerInput).clear();
+        resetErrors();
+    }
+}
+function handleConseillerSubmit(e) {
+    e.preventDefault();
+    resetErrors();
+    const identifierInput = document.getElementById('conseillerIdentifier');
+    const codeInput = document.getElementById('conseillerCode');
+    let isValid = true;
+    if (!identifierInput || !identifierInput.value.trim()) {
+        document.getElementById('identifierError').classList.add('visible');
+        isValid = false;
+    }
+    if (!codeInput || codeInput.value.length < 8) {
+        document.getElementById('codeError').classList.add('visible');
+        isValid = false;
+    }
+    if (!isValid) return;
+    const identifier = identifierInput.value.trim();
+    const isEmail = identifier.includes('@');
+    const potentialEmail = isEmail ? identifier : `${identifier}@viteloger.com`;
+    let existingConseiller = loadData('conseiller');
+    if (existingConseiller && existingConseiller.email === potentialEmail) {
+        currentConseiller = existingConseiller;
+    } else {
+        const defaultPhoto = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e0e0e0"/><text x="50" y="55" font-family="Arial" font-size="12" fill="%23888" text-anchor="middle">Pas de photo</text></svg>';
+        currentConseiller = {
+            name: isEmail ? identifier.split('@')[0] : identifier,
+            email: potentialEmail,
+            phone: '0000000000',
+            photo: defaultPhoto,
+            lat: null,
+            lng: null
+        };
+    }
+    saveData('conseiller', currentConseiller);
+    requestGeolocation('conseiller');
+    switchToDashboard();
+    if (!sampleDataAdded) {
+        addSampleData();
+        sampleDataAdded = true;
+        localStorage.setItem('sampleDataAdded', 'true');
+    }
+}
+function updateProfileDisplay() {
+    const c = currentConseiller || {};
+    setTextContent('profileName', c.name || 'Non défini');
+    setTextContent('profileEmail', c.email || 'Non défini');
+    setTextContent('profilePhone', c.phone || 'Non défini');
+    const profilePhotoElement = document.getElementById('profilePhoto');
+    if (profilePhotoElement) {
+        profilePhotoElement.src = c.photo || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e0e0e0"/><text x="50" y="55" font-family="Arial" font-size="12" fill="%23888" text-anchor="middle">Pas de photo</text></svg>';
+        profilePhotoElement.alt = `Photo de ${c.name || 'profil'}`;
+    }
+    const websiteLink = document.getElementById('profileWebsite');
+    if (websiteLink) websiteLink.href = c.website || 'https://viteloger.com';
+    setTextContent('welcomeMessage', `Bienvenue, ${c.name || 'Conseiller'} !`);
+    setInputValue('editName', c.name || '');
+    setInputValue('editEmail', c.email || '');
+    setInputValue('editPhone', c.phone || '');
+    setInputValue('editLat', c.lat || '');
+    setInputValue('editLng', c.lng || '');
+}
+function setTextContent(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element) element.textContent = text;
+}
+function setInputValue(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) element.value = value;
+}
+function editProfile() {
+    if (!currentConseiller) return;
+    setInputValue('editName', currentConseiller.name || '');
+    setInputValue('editEmail', currentConseiller.email || '');
+    setInputValue('editPhone', currentConseiller.phone || '');
+    setInputValue('editLat', currentConseiller.lat || '');
+    setInputValue('editLng', currentConseiller.lng || '');
+    setInputValue('editPhoto', '');
+    document.getElementById('profileDisplay').style.display = 'none';
+    document.getElementById('profileForm').style.display = 'block';
+    document.getElementById('editName').focus();
+}
+function cancelEdit() {
+    document.getElementById('profileDisplay').style.display = 'flex';
+    document.getElementById('profileForm').style.display = 'none';
+}
+function saveProfile() {
+    if (!currentConseiller) return;
+    const nameInput = document.getElementById('editName');
+    const emailInput = document.getElementById('editEmail');
+    const phoneInput = document.getElementById('editPhone');
+    let isValid = true;
+    if (!nameInput?.value?.trim()) {
+        alert('Nom requis.');
+        nameInput?.focus();
+        isValid = false;
+    }
+    if (!emailInput || !emailInput.checkValidity()) {
+        alert('Email invalide.');
+        emailInput?.focus();
+        isValid = false;
+    }
+    if (!phoneInput || !phoneInput.checkValidity()) {
+        alert('Téléphone invalide.');
+        phoneInput?.focus();
+        isValid = false;
+    }
+    if (!isValid) return;
+    const updatedData = {
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        lat: currentConseiller.lat,
+        lng: currentConseiller.lng,
+        photo: currentConseiller.photo
+    };
+    const photoInput = document.getElementById('editPhoto');
+    if (photoInput?.files && photoInput.files[0]) {
+        const file = photoInput.files[0];
+        if (!file.type.startsWith('image/')) {
+            alert("Fichier non image.");
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            alert("Image > 2 Mo.");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => {
+            updatedData.photo = e.target.result;
+            currentConseiller = { ...currentConseiller, ...updatedData };
+            saveData('conseiller', currentConseiller);
+            finalizeProfileSave();
+        };
+        reader.onerror = () => alert("Erreur lecture image.");
+        reader.readAsDataURL(file);
+    } else {
+        currentConseiller = { ...currentConseiller, ...updatedData };
+        saveData('conseiller', currentConseiller);
+        finalizeProfileSave();
+    }
+}
+function finalizeProfileSave() {
+    updateProfileDisplay();
+    cancelEdit();
+    if (map) updateMap();
+    alert('Profil sauvegardé !');
+}
+function resetErrors() {
+    document.querySelectorAll('.error-message.visible').forEach(el => {
+        el.classList.remove('visible');
+        if (el.dataset.defaultError) el.textContent = el.dataset.defaultError;
+    });
+}
+function addSampleData() {
+    let dataAdded = false;
+    const defaultPhoto = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e0e0e0"/><text x="50" y="55" font-family="Arial" font-size="12" fill="%23888" text-anchor="middle">Pas de photo</text></svg>';
+    if (!currentConseiller) currentConseiller = { lat: null, lng: null };
+    if (!loadData('leads') || loadData('leads').length === 0) {
+        const sampleLeads = [
+            { id: 'sampleL1', name: 'Alice Martin', phone: '0611223344', zip: '75001', services: 'Acheter', time: '15/07/2024 10:00', date: '01/07/2024', status: 'Nouveau', notes: '2 pièces Paris, 400k€', lat: 48.85884, lng: 2.34701, email: 'alice.m@email.com', address: '5 Rue de Rivoli', recallDate: null },
+            { id: 'sampleL2', name: 'Bob Dupont', phone: '0622334455', zip: '69002', services: 'Vendre, Estimer', time: 'Dès que possible', date: '02/07/2024', status: 'À rappeler', recallDate: '25/07/2024 14:30', notes: 'Maison Lyon.', lat: 45.7578, lng: 4.8320, email: 'bob.d@email.com', address: '15 Place Bellecour' },
+            { id: 'sampleL3', name: 'Carla Petit', phone: '0633445566', zip: '13008', services: 'Louer', time: 'Dès que possible', date: '03/07/2024', status: 'Favori', notes: 'T3 Marseille.', lat: 43.2776, lng: 5.3800, email: '', address: '20 Avenue du Prado', recallDate: null },
+            { id: 'sampleL4', phone: '0644556677', zip: '33000', services: 'Acheter', time: 'Semaine prochaine', date: '04/07/2024', status: 'Nouveau', notes: 'Bordeaux.', lat: 44.8378, lng: -0.5792, email: '', address: '', name: '', recallDate: null }
+        ];
+        saveData('leads', sampleLeads);
+        dataAdded = true;
+    }
+    if (!loadData('merchants') || loadData('merchants').length === 0) {
+        const sampleMerchants = [
+            { id: 'sampleM1', name: 'Boulangerie Soleil', activity: 'Boulangerie', address: '1 Rue du Pain', cp: '75011', phone: '0140112233', email: 'contact@soleil.fr', gerant: 'M. Dupont', lat: 48.857, lng: 2.375 },
+            { id: 'sampleM2', name: 'Café Artistes', activity: 'Café', address: '10 Place Tertre', cp: '75018', phone: '0140223344', email: 'cafe.artistes@email.com', gerant: 'Mme Dubois', lat: 48.8867, lng: 2.3400 },
+            { id: 'sampleM3', name: 'Fleuriste Jardin', activity: 'Fleuriste', address: '5 Rue Rosiers', cp: '69004', phone: '0470334455', email: '', gerant: 'M. Jardin', lat: 45.7775, lng: 4.8302 }
+        ];
+        saveData('merchants', sampleMerchants);
+        dataAdded = true;
+    }
+    if (!loadData('emails') || loadData('emails').length === 0) {
+        const sampleEmails = [
+            { id: 'sampleE1', recipient: 'alice.m@email.com', subject: 'Recherche 2P Paris', body: 'Bonjour Alice,\nBiens correspondants...\nCordialement.', date: '04/07/2024 11:00', openDate: null, lat: currentConseiller?.lat || null, lng: currentConseiller?.lng || null },
+            { id: 'sampleE2', recipient: 'bob.d@email.com', subject: 'Estimation Lyon', body: 'Bonjour Bob,\nDocs estimation...\nBien à vous.', date: '05/07/2024 15:30', openDate: null, lat: currentConseiller?.lat || null, lng: currentConseiller?.lng || null }
+        ];
+        saveData('emails', sampleEmails);
+        dataAdded = true;
+    }
+    if (dataAdded && document.getElementById('dashboardContainer')?.style.display === 'block') {
+        updateAllTables();
+        if (map) updateMap();
+    }
+}
+function openLeadForm(id) {
+    const leads = loadData('leads');
+    const lead = leads.find(l => l && l.id === id);
+    if (lead) {
+        setTextContent('leadPopupTitle', `Fiche Lead: ${lead.name || lead.phone || 'Inconnu'}`);
+        setInputValue('leadId', id);
+        setInputValue('leadDisplayId', id);
+        setInputValue('leadName', lead.name || '');
+        setInputValue('leadPhone', lead.phone || '');
+        setInputValue('leadAddress', lead.address || '');
+        setInputValue('leadEmail', lead.email || '');
+        setInputValue('leadZip', lead.zip || '');
+        setInputValue('leadServices', lead.services || '');
+        setInputValue('leadTime', lead.time || '');
+        setInputValue('leadDate', lead.date || '');
+        setInputValue('leadStatus', lead.status || 'Nouveau');
+        setInputValue('leadNotes', lead.notes || '');
+        setInputValue('leadLat', lead.lat || '');
+        setInputValue('leadLng', lead.lng || '');
+        setInputValue('leadRecallDate', lead.recallDate || '');
+        const isRecall = lead.status === 'À rappeler';
+        const recallContainer = document.getElementById('recallDateContainer');
+        if (recallContainer) recallContainer.style.display = isRecall ? 'block' : 'none';
+        resetFormEditState('leadForm');
+        document.getElementById('leadFormPopup')?.classList.add('visible');
+    } else {
+        alert("Lead non trouvé.");
+    }
+}
+function closeLeadForm() {
+    document.getElementById('leadFormPopup')?.classList.remove('visible');
+    resetFormEditState('leadForm');
+}
+function saveLead() {
+    const id = document.getElementById('leadId')?.value;
+    if (!id) {
+        alert("Erreur: ID manquant.");
+        return;
+    }
+    const phoneInput = document.getElementById('leadPhone');
+    const zipInput = document.getElementById('leadZip');
+    const emailInput = document.getElementById('leadEmail');
+    const servicesInput = document.getElementById('leadServices');
+    const timeInput = document.getElementById('leadTime');
+    // Validation des champs requis
+    if (!phoneInput || !phoneInput.checkValidity()) {
+        alert('Téléphone invalide (10 chiffres).');
+        phoneInput?.focus();
+        return;
+    }
+    if (!zipInput || !zipInput.checkValidity()) {
+        alert('CP invalide (5 chiffres).');
+        zipInput?.focus();
+        return;
+    }
+    if (!servicesInput || !servicesInput.value.trim()) {
+        alert('Services requis.');
+        servicesInput?.focus();
+        return;
+    }
+    if (!timeInput || !timeInput.value.trim()) {
+        alert('Horaire requis.');
+        timeInput?.focus();
+        return;
+    }
+    if (emailInput && emailInput.value && !emailInput.checkValidity()) {
+        alert('Email invalide.');
+        emailInput?.focus();
+        return;
+    }
+    const data = {
+        name: document.getElementById('leadName')?.value.trim() || '',
+        phone: phoneInput.value.trim(),
+        address: document.getElementById('leadAddress')?.value.trim() || '',
+        email: emailInput?.value.trim() || '',
+        zip: zipInput.value.trim(),
+        services: servicesInput.value.trim(),
+        time: timeInput.value.trim(),
+        date: document.getElementById('leadDate')?.value || '',
+        status: document.getElementById('leadStatus')?.value || 'Nouveau',
+        notes: document.getElementById('leadNotes')?.value.trim() || '',
+        lat: parseFloat(document.getElementById('leadLat')?.value) || null,
+        lng: parseFloat(document.getElementById('leadLng')?.value) || null,
+        recallDate: document.getElementById('leadStatus')?.value === 'À rappeler' ? (document.getElementById('leadRecallDate')?.value || null) : null
+    };
+    try {
+        const saved = saveItem('leads', id, data);
+        if (saved) {
+            updateLeadsTable();
+            if (map) updateMap();
+            resetFormEditState('leadForm');
+            alert('Lead sauvegardé !');
+            closeLeadForm(); // Ferme le popup après sauvegarde
+        } else {
+            alert('Échec sauvegarde lead.');
+        }
+    } catch (error) {
+        alert(`Erreur lors de la sauvegarde du lead: ${error.message}`);
+    }
+}
+function deleteLeadForm() {
+    const id = document.getElementById('leadId')?.value;
+    if (!id) return;
+    deleteItem('leads', id, 'Lead archivé !');
+    closeLeadForm();
+}
+function addNewMerchant() {
+    requestGeolocation('merchant_add',
+        coords => promptOpenMerchantForm(coords.lat, coords.lng),
+        () => {
+            alert("Géoloc échouée. Coords manuelles.");
+            promptOpenMerchantForm(null, null);
+        }
+    );
+}
+function promptOpenMerchantForm(lat, lng) {
+    const newId = Date.now().toString();
+    const newMerchant = {
+        id: newId,
+        name: '',
+        activity: '',
+        address: '',
+        cp: '',
+        phone: '',
+        email: '',
+        gerant: '',
+        lat: lat,
+        lng: lng
+    };
+    try {
+        saveItem('merchants', newMerchant.id, newMerchant);
+        updateMerchantsTable();
+        if (map) updateMap();
+        openMerchantForm(newMerchant.id, true);
+    } catch {
+        alert("Erreur fiche commerçant.");
+    }
+}
+function openMerchantForm(id, startInEditMode = false) {
+    const merchants = loadData('merchants');
+    const merchant = merchants.find(m => m && m.id === id);
+    if (merchant) {
+        setTextContent('merchantPopupTitle', `Fiche Commerçant: ${merchant.name || 'Nouveau'}`);
+        setInputValue('merchantId', id);
+        setInputValue('merchantDisplayId', id);
+        setInputValue('merchantName', merchant.name || '');
+        setInputValue('merchantActivity', merchant.activity || '');
+        setInputValue('merchantAddress', merchant.address || '');
+        setInputValue('merchantCP', merchant.cp || '');
+        setInputValue('merchantPhone', merchant.phone || '');
+        setInputValue('merchantEmail', merchant.email || '');
+        setInputValue('merchantGerant', merchant.gerant || '');
+        setInputValue('merchantLat', merchant.lat || '');
+        setInputValue('merchantLng', merchant.lng || '');
+        resetFormEditState('merchantForm');
+        if (startInEditMode) editForm('merchantForm');
+        document.getElementById('merchantFormPopup')?.classList.add('visible');
+    } else {
+        alert("Commerçant non trouvé.");
+    }
+}
+function closeMerchantForm() {
+    document.getElementById('merchantFormPopup')?.classList.remove('visible');
+    resetFormEditState('merchantForm');
+}
+function saveMerchant() {
+    const id = document.getElementById('merchantId')?.value;
+    if (!id) {
+        alert("Erreur: ID manquant.");
+        return;
+    }
+    const nameInput = document.getElementById('merchantName');
+    const phoneInput = document.getElementById('merchantPhone');
+    const cpInput = document.getElementById('merchantCP');
+    const emailInput = document.getElementById('merchantEmail');
+    const activityInput = document.getElementById('merchantActivity');
+    // Validation des champs requis
+    if (!nameInput?.value?.trim()) {
+        alert('Nom requis.');
+        nameInput?.focus();
+        return;
+    }
+    if (!phoneInput || !phoneInput.checkValidity()) {
+        alert('Téléphone invalide (10 chiffres).');
+        phoneInput?.focus();
+        return;
+    }
+    if (!activityInput?.value?.trim()) {
+        alert('Activité requise.');
+        activityInput?.focus();
+        return;
+    }
+    if (cpInput && cpInput.value && !cpInput.checkValidity()) {
+        alert('CP invalide (5 chiffres).');
+        cpInput?.focus();
+        return;
+    }
+    if (emailInput && emailInput.value && !emailInput.checkValidity()) {
+        alert('Email invalide.');
+        emailInput?.focus();
+        return;
+    }
+    const data = {
+        name: nameInput.value.trim(),
+        activity: activityInput.value.trim(),
+        address: document.getElementById('merchantAddress')?.value.trim() || '',
+        cp: cpInput?.value.trim() || '',
+        phone: phoneInput.value.trim(),
+        email: emailInput?.value.trim() || '',
+        gerant: document.getElementById('merchantGerant')?.value.trim() || '',
+        lat: parseFloat(document.getElementById('merchantLat')?.value) || null,
+        lng: parseFloat(document.getElementById('merchantLng')?.value) || null
+    };
+    try {
+        const saved = saveItem('merchants', id, data);
+        if (saved) {
+            updateMerchantsTable();
+            if (map) updateMap();
+            resetFormEditState('merchantForm');
+            alert('Commerçant sauvegardé !');
+            closeMerchantForm(); // Ferme le popup après sauvegarde
+        } else {
+            alert('Échec sauvegarde commerçant.');
+        }
+    } catch (error) {
+        alert(`Erreur lors de la sauvegarde du commerçant: ${error.message}`);
+    }
+}
+
+function deleteMerchantForm() {
+    const id = document.getElementById('merchantId')?.value;
+    if (!id) return;
+    deleteItem('merchants', id, 'Commerçant archivé !');
+    closeMerchantForm();
+}
+function editForm(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    currentEditableFormId = formId;
+    form.querySelectorAll('input:not([type=hidden]), textarea, select').forEach(input => {
+        const exceptions = ['leadDisplayId', 'merchantDisplayId', 'emailEditIdDisplay', 'leadDate', 'emailEditDate', 'emailEditOpenDate'];
+        if (!exceptions.includes(input.id) && !input.classList.contains('read-as-text')) {
+            if (input.id.toLowerCase().includes('lat') || input.id.toLowerCase().includes('lng')) {
+                input.readOnly = true;
+            } else {
+                input.readOnly = false;
+                if (input.tagName === 'SELECT') input.disabled = false;
+            }
+        }
+    });
+    if (formId === 'leadForm') {
+        const leadStatusSelect = document.getElementById('leadStatus');
+        if (leadStatusSelect) {
+            leadStatusSelect.disabled = false;
+            leadStatusSelect.dispatchEvent(new Event('change'));
+        }
+    }
+    const saveBtnId = `save${formId.replace('Form', '')}Btn`;
+    const editBtnId = `edit${formId.replace('Form', '')}Btn`;
+    const saveBtn = document.getElementById(saveBtnId);
+    const editBtn = document.getElementById(editBtnId);
+    if (saveBtn) saveBtn.disabled = false; // Assure que le bouton est activé
+    if (editBtn) editBtn.disabled = true;
+    const firstEditable = form.querySelector('input:not([type=hidden]):not([readonly]):not(.read-as-text), textarea:not([readonly]):not(.read-as-text), select:not(:disabled)');
+    if (firstEditable) firstEditable.focus();
+}
+function resetFormEditState(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    currentEditableFormId = null;
+    form.querySelectorAll('input:not([type=hidden]), textarea, select').forEach(input => {
+        input.readOnly = true;
+        if (input.tagName === 'SELECT') input.disabled = true;
+        if (input.id.toLowerCase().includes('displayid') || input.id === 'leadDate' || input.id === 'emailEditDate' || input.id === 'emailEditOpenDate') {
+            input.classList.add('read-as-text');
+        } else {
+            input.classList.remove('read-as-text');
+        }
+    });
+    const saveBtnId = `save${formId.replace('Form', '')}Btn`;
+    const editBtnId = `edit${formId.replace('Form', '')}Btn`;
+    const saveBtn = document.getElementById(saveBtnId);
+    const editBtn = document.getElementById(editBtnId);
+    if (saveBtn) saveBtn.disabled = true;
+    if (editBtn) editBtn.disabled = false;
+    if (formId === 'leadForm') {
+        const recallContainer = document.getElementById('recallDateContainer');
+        if (recallContainer) recallContainer.style.display = 'none';
+    }
+}
+function updateAllTables() {
+    updateLeadsTable();
+    updateMerchantsTable();
+    updateEmailTable();
+}
+function updateLeadsTable() {
+    const items = loadData('leads');
+    const tbody = document.getElementById('leadsTableBody');
+    if (tbody) {
+        renderTableBody('leads', items || [], tbody);
+        updateSortIndicators('leads');
+        const selectAllCheckbox = document.getElementById('selectAllLeads');
+        if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    }
+}
+function updateMerchantsTable() {
+    const items = loadData('merchants');
+    const tbody = document.getElementById('merchantTableBody');
+    if (tbody) {
+        renderTableBody('merchants', items || [], tbody);
+        updateSortIndicators('merchants');
+        const selectAllCheckbox = document.getElementById('selectAllMerchants');
+        if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    }
+}
+function updateEmailTable() {
+    const items = loadData('emails');
+    const tbody = document.getElementById('emailTableBody');
+    if (tbody) {
+        renderTableBody('emails', items || [], tbody);
+        updateSortIndicators('emails');
+        const selectAllCheckbox = document.getElementById('selectAllEmails');
+        if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    }
+}
+function sortTable(type, column) {
+    const tbodyId = `${type}TableBody`;
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    let items = loadData(type) || [];
+    sortState[type] = sortState[type] || {};
+    const currentSortDirection = sortState[type][column];
+    let newDirection = !currentSortDirection ? 'asc' : currentSortDirection === 'asc' ? 'desc' : null;
+    sortState[type] = {};
+    if (newDirection) sortState[type][column] = newDirection;
+    if (newDirection) {
+        items.sort((a, b) => {
+            if (!a || !b) return 0;
+            let valA = a[column] ?? '';
+            let valB = b[column] ?? '';
+            const isDateColumn = ['date', 'time', 'recallDate', 'openDate', 'deleteDate'].includes(column);
+            if (isDateColumn && typeof valA === 'string' && valA.includes('/') && typeof valB === 'string' && valB.includes('/')) {
+                try {
+                    const parseDate = dateStr => {
+                        const parts = dateStr.split(' ');
+                        const dateParts = parts[0].split('/');
+                        if (dateParts.length !== 3) return null;
+                        const timeParts = parts.length > 1 ? parts[1].split(':') : ['00', '00'];
+                        if (timeParts.length < 2) timeParts.push('00');
+                        const d = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]), parseInt(timeParts[0]), parseInt(timeParts[1]));
+                        return isNaN(d) ? null : d;
+                    };
+                    const dateA = parseDate(valA);
+                    const dateB = parseDate(valB);
+                    if (dateA && dateB) return newDirection === 'asc' ? dateA - dateB : dateB - dateA;
+                } catch {}
+            }
+            const isNumericA = !isNaN(parseFloat(valA)) && isFinite(valA);
+            const isNumericB = !isNaN(parseFloat(valB)) && isFinite(valB);
+            if (isNumericA && isNumericB && typeof valA !== 'string' && typeof valB !== 'string' && column !== 'phone') {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+                return newDirection === 'asc' ? valA - valB : valB - valA;
+            }
+            valA = String(valA).toLowerCase();
+            valB = String(valB).toLowerCase();
+            return newDirection === 'asc' ? valA.localeCompare(valB, 'fr') : valB.localeCompare(valA, 'fr');
+        });
+    } else {
+        items.sort((a, b) => (parseInt(b?.id) || 0) - (parseInt(a?.id) || 0));
+    }
+    renderTableBody(type, items, tbody);
+    updateSortIndicators(type);
+}
+function updateSortIndicators(type) {
+    const tableId = `${type}Table`;
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    table.querySelectorAll('thead th[onclick]').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        const match = th.getAttribute('onclick')?.match(/sortTable\(\s*['"]([^'"]+)['"],\s*['"]([^'"]+)['"]\s*\)/);
+        if (match && match.length === 3 && sortState[type] && sortState[type][match[2]]) {
+            th.classList.add(`sort-${sortState[type][match[2]]}`);
+        }
+    });
+}
+function renderTableBody(type, items, tbody) {
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const filterInputId = `${type.slice(0, -1)}Filter`;
+    const filterInput = document.getElementById(filterInputId);
+    const filter = filterInput ? filterInput.value.trim().toLowerCase() : '';
+    const filteredItems = (items || []).filter(item => {
+        if (!item) return false;
+        if (!filter) return true;
+        return Object.values(item).some(val => val != null && String(val).toLowerCase().includes(filter));
+    });
+    if (filteredItems.length === 0) {
+        const colCount = tbody.closest('table')?.querySelector('thead tr')?.cells?.length || 5;
+        tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align: center; padding: 25px; color: #6c757d;">Aucun résultat ${filter ? 'pour "' + filter + '"' : ''}.</td></tr>`;
+        return;
+    }
+    filteredItems.forEach(item => {
+        if (!item || !item.id) return;
+        const tr = document.createElement('tr');
+        try {
+            tr.innerHTML = getTableRowHTML(type, item);
+            tbody.appendChild(tr);
+        } catch {}
+    });
+}
+function getTableRowHTML(type, item) {
+    if (!item || !item.id) return '';
+    const id = item.id;
+    const lat = item.lat;
+    const lng = item.lng;
+    const mapButtonHTML = lat != null && lng != null ? `<button onclick="showOnMap(${lat}, ${lng}, '${type.slice(0,-1)}')"><i class="fas fa-map-marker-alt"></i></button>` : '<span style="color: #adb5bd; font-size: 1.2em;" title="Pas de coordonnées">-</span>';
+    const checkboxHTML = `<td style="width: 30px; text-align: center;"><input type="checkbox" class="selectItemCheckbox" data-type="${type.slice(0,-1)}" data-id="${id}" title="Sélectionner"></td>`;
+    const openFormFunc = `open${type.charAt(0).toUpperCase() + type.slice(1, -1)}Form`;
+    const ficheIdButtonHTML = `<td><button onclick="${openFormFunc}('${String(id)}')"><i class="fas fa-file-alt"></i> ${String(id).slice(-4)}</button></td>`;
+    const archiveButtonHTML = `<td style="text-align: center;"><button onclick="deleteItem('${type}', '${String(id)}', '${type.charAt(0).toUpperCase() + type.slice(1, -1)} archivé.')" class="cancel" title="Archiver"><i class="fas fa-archive"></i></button></td>`;
+    switch (type) {
+        case 'leads':
+            const shortNote = item.notes ? item.notes.substring(0, 25) + (item.notes.length > 25 ? '...' : '') : '-';
+            const phoneLink = item.phone ? `<a href="tel:${item.phone}" title="Appeler ${item.phone}">${item.phone}</a>` : '-';
+            const statusClass = `status-${(item.status || 'Nouveau').toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+            return `
+                ${checkboxHTML}
+                ${ficheIdButtonHTML}
+                <td>${item.name || '<i style="color:#adb5bd;">(Non renseigné)</i>'}</td>
+                <td>${phoneLink}</td>
+                <td>${item.zip || '-'}</td>
+                <td title="${item.services || ''}">${(item.services || '-').substring(0, 20)}${(item.services || '').length > 20 ? '...' : ''}</td>
+                <td>${item.time || '-'}</td>
+                <td>${item.date || '-'}</td>
+                <td class="${statusClass}">${item.status || 'Nouveau'}</td>
+                <td title="${item.notes || ''}">${shortNote}</td>
+                <td style="text-align: center;">${mapButtonHTML}</td>
+                ${archiveButtonHTML}
+            `;
+        case 'merchants':
+            const merchantPhoneLink = item.phone ? `<a href="tel:${item.phone}" title="Appeler ${item.phone}">${item.phone}</a>` : '-';
+            const merchantEmailLink = item.email ? `<a href="mailto:${item.email}" title="Email ${item.email}">${item.email}</a>` : '-';
+            return `
+                ${checkboxHTML}
+                ${ficheIdButtonHTML}
+                <td>${item.name || '-'}</td>
+                <td>${item.activity || '-'}</td>
+                <td>${item.address || '-'}</td>
+                <td>${item.cp || '-'}</td>
+                <td>${merchantPhoneLink}</td>
+                <td>${merchantEmailLink}</td>
+                <td>${item.gerant || '-'}</td>
+                <td style="text-align: center;">${mapButtonHTML}</td>
+                ${archiveButtonHTML}
+            `;
+        case 'emails':
+            const emailRecipientLink = item.recipient ? `<a href="mailto:${item.recipient}" title="Email ${item.recipient}">${item.recipient}</a>` : '-';
+            const shortSubject = item.subject ? item.subject.substring(0, 30) + (item.subject.length > 30 ? '...' : '') : '-';
+            return `
+                ${checkboxHTML}
+                ${ficheIdButtonHTML}
+                <td>${emailRecipientLink}</td>
+                <td title="${item.subject || ''}">${shortSubject}</td>
+                <td>${item.date || '-'}</td>
+                <td>${item.openDate || '<i style="color:#adb5bd;">(Non suivi)</i>'}</td>
+                <td style="text-align: center;">${mapButtonHTML}</td>
+                ${archiveButtonHTML}
+            `;
+        default:
+            return `<tr><td colspan="10">Erreur type table</td></tr>`;
+    }
+}
+function toggleSelectAll(type) {
+    const typeSingulier = type.slice(0, -1);
+    const selectAllCheckboxId = `selectAll${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    const tableId = `${type}Table`;
+    const selectAll = document.getElementById(selectAllCheckboxId);
+    const table = document.getElementById(tableId);
+    if (!selectAll || !table) return;
+    const isChecked = selectAll.checked;
+    table.querySelectorAll(`tbody input.selectItemCheckbox[data-type="${typeSingulier}"]`).forEach(cb => {
+        const row = cb.closest('tr');
+        if (row && row.style.display !== 'none') cb.checked = isChecked;
+    });
+}
+function getSelectedIds(type) {
+    const typeSingulier = type.slice(0, -1);
+    const selectedCheckboxes = document.querySelectorAll(`#${type}Table tbody input.selectItemCheckbox[data-type="${typeSingulier}"]:checked`);
+    return Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+}
+function deleteSelected(type) {
+    const ids = getSelectedIds(type);
+    if (ids.length === 0) {
+        alert('Aucun élément sélectionné.');
+        return;
+    }
+    if (!confirm(`Archiver ${ids.length} élément(s) (${type}) ?`)) return;
+    const items = loadData(type);
+    const archive = loadData('archive');
+    let itemsArchivedCount = 0;
+    const remainingItems = items.filter(item => {
+        if (!item || !ids.includes(item.id)) return true;
+        const itemToArchive = { ...item, type: type.slice(0, -1), deleteDate: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) };
+        archive.push(itemToArchive);
+        itemsArchivedCount++;
+        return false;
+    });
+    saveData(type, remainingItems);
+    saveData('archive', archive);
+    if (type === 'leads') updateLeadsTable();
+    else if (type === 'merchants') updateMerchantsTable();
+    else if (type === 'emails') updateEmailTable();
+    if (map) updateMap();
+    alert(`${itemsArchivedCount} élément(s) archivé(s).`);
+    const selectAllCheckboxId = `selectAll${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    const selectAllCheckbox = document.getElementById(selectAllCheckboxId);
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+}
+function deleteItem(itemType, id, successMessage) {
+    if (!confirm(`Archiver élément ? (ID: ${id})`)) return;
+    const items = loadData(itemType);
+    const archive = loadData('archive');
+    const index = items.findIndex(item => item && item.id === id);
+    if (index !== -1) {
+        const itemToArchive = { ...items[index], type: itemType.slice(0, -1), deleteDate: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) };
+        archive.push(itemToArchive);
+        items.splice(index, 1);
+        saveData(itemType, items);
+        saveData('archive', archive);
+        if (itemType === 'leads') updateLeadsTable();
+        else if (itemType === 'merchants') updateMerchantsTable();
+        else if (itemType === 'emails') updateEmailTable();
+        if (map) updateMap();
+        alert(successMessage || 'Archivé !');
+    } else {
+        alert("Erreur: Élément non trouvé.");
+    }
+}
+function printSelected(type) {
+    const ids = getSelectedIds(type);
+    if (ids.length === 0) {
+        alert('Aucun élément sélectionné.');
+        return;
+    }
+    const items = loadData(type);
+    const selectedItems = items.filter(item => item && ids.includes(item.id));
+    const typeName = type === 'leads' ? 'Leads' : (type === 'merchants' ? 'Commerçants' : 'Emails');
+    let content = `<html><head><meta charset="UTF-8"><title>Impression ${typeName} - Vite Loger</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; color: #000; background: #fff; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10pt; }
+        th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; word-break: break-word; }
+        th { background-color: #eee; font-weight: bold; }
+        h1 { color: #00AEBC; font-size: 16pt; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 15px;}
+        p { font-size: 9pt; margin-top: 15px; }
+        @media print { #printControls { display: none; } body { margin: 10mm; } table { font-size: 8pt; } h1 { font-size: 14pt; } }
+    </style>
+    </head><body>
+    <h1>Liste ${typeName} (${selectedItems.length})</h1>
+    <table>`;
+    if (type === 'leads') {
+        content += `<thead><tr><th>Nom</th><th>Téléphone</th><th>Email</th><th>CP</th><th>Services</th><th>Statut</th><th>Date Dem.</th><th>Horaire/Note</th><th>Notes</th></tr></thead><tbody>`;
+        selectedItems.forEach(item => {
+            content += `<tr>
+                <td>${item.name || '-'}</td><td>${item.phone || '-'}</td><td>${item.email || '-'}</td>
+                <td>${item.zip || '-'}</td><td>${item.services || '-'}</td><td>${item.status || '-'}</td>
+                <td>${item.date || '-'}</td><td>${item.time || '-'}</td><td>${item.notes || '-'}</td></tr>`;
+        });
+    } else if (type === 'merchants') {
+        content += `<thead><tr><th>Nom</th><th>Activité</th><th>Adresse</th><th>CP</th><th>Téléphone</th><th>Email</th><th>Gérant</th></tr></thead><tbody>`;
+        selectedItems.forEach(item => {
+            content += `<tr>
+                <td>${item.name || '-'}</td><td>${item.activity || '-'}</td>
+                <td>${item.address || '-'}</td><td>${item.cp || '-'}</td><td>${item.phone || '-'}</td>
+                <td>${item.email || '-'}</td><td>${item.gerant || '-'}</td></tr>`;
+        });
+    } else if (type === 'emails') {
+        content += `<thead><tr><th>Destinataire</th><th>Objet</th><th>Date Envoi</th><th>Date Ouv.</th><th>Message (Début)</th></tr></thead><tbody>`;
+        selectedItems.forEach(item => {
+            const shortBody = item.body ? item.body.substring(0, 150) + (item.body.length > 150 ? '...' : '') : '-';
+            content += `<tr>
+                <td>${item.recipient || '-'}</td><td>${item.subject || '-'}</td>
+                <td>${item.date || '-'}</td><td>${item.openDate || 'N/A'}</td>
+                <td>${shortBody}</td></tr>`;
+        });
+    }
+    content += `</tbody></table><p>Imprimé le ${new Date().toLocaleString('fr-FR')}</p>`;
+    content += `<div id="printControls" style="text-align:center; margin-top:20px;">
+        <button onclick="window.print()">Imprimer</button>
+        <button onclick="window.close()">Fermer</button>
+    </div>`;
+    content += `</body></html>`;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+        printWindow.document.write(content);
+        printWindow.document.close();
+        printWindow.focus();
+    } else {
+        alert("Popups bloqués.");
+    }
+}
+function shareSelected(type) {
+    const ids = getSelectedIds(type);
+    if (ids.length === 0) {
+        alert('Aucun élément sélectionné.');
+        return;
+    }
+    const items = loadData(type);
+    const selectedItems = items.filter(item => item && ids.includes(item.id));
+    const typeName = type === 'leads' ? 'Lead' : (type === 'merchants' ? 'Commerçant' : 'Email');
+    let shareText = `*Vite Loger - Sélection ${typeName}*\n\n`;
+    if (type === 'leads') {
+        selectedItems.forEach((item, index) => {
+            shareText += `*Lead ${index + 1}*\n` +
+                         `Nom: ${item.name || '-'}\n` +
+                         `Tél: ${item.phone || '-'}\n` +
+                         `Email: ${item.email || '-'}\n` +
+                         `CP: ${item.zip || '-'}\n` +
+                         `Services: ${item.services || '-'}\n` +
+                         `Statut: ${item.status || '-'}\n\n`;
+        });
+    } else if (type === 'merchants') {
+        selectedItems.forEach((item, index) => {
+            shareText += `*Commerçant ${index + 1}*\n` +
+                         `Nom: ${item.name || '-'}\n` +
+                         `Activité: ${item.activity || '-'}\n` +
+                         `Adresse: ${item.address || '-'}\n` +
+                         `CP: ${item.cp || '-'}\n` +
+                         `Tél: ${item.phone || '-'}\n` +
+                         `Email: ${item.email || '-'}\n` +
+                         `Gérant: ${item.gerant || '-'}\n\n`;
+        });
+    } else if (type === 'emails') {
+        selectedItems.forEach((item, index) => {
+            const shortBody = item.body ? item.body.substring(0, 100) + (item.body.length > 100 ? '...' : '') : '-';
+            shareText += `*Email ${index + 1}*\n` +
+                         `Destinataire: ${item.recipient || '-'}\n` +
+                         `Objet: ${item.subject || '-'}\n` +
+                         `Date: ${item.date || '-'}\n` +
+                         `Message: ${shortBody}\n\n`;
+        });
+    }
+    shareText += `Via Vite Loger - viteloger.com`;
+    if (navigator.share) {
+        navigator.share({
+            title: `Vite Loger - ${typeName}`,
+            text: shareText,
+            url: 'https://viteloger.com'
+        }).catch(() => {
+            alert("Erreur partage.");
+        });
+    } else {
+        prompt("Copiez le texte :", shareText);
+    }
+}
+function shareApp(section) {
+    const shareData = {
+        title: 'Vite Loger',
+        text: section === 'conseiller' && currentConseiller ?
+              `Contactez ${currentConseiller.name || 'mon conseiller'} via Vite Loger !\n` +
+              `Tél: ${currentConseiller.phone || '-'}\n` +
+              `Email: ${currentConseiller.email || '-'}\n` +
+              `Site: viteloger.com` :
+              'Découvrez Vite Loger, gestion immobilière simple et rapide !',
+        url: 'https://viteloger.com'
+    };
+    if (navigator.share) {
+        navigator.share(shareData).catch(() => {
+            alert("Erreur partage.");
+        });
+    } else {
+        prompt("Copiez le texte :", `${shareData.text}\n${shareData.url}`);
+    }
+}
+function initMap() {
+    const mapDiv = document.getElementById('map');
+    if (!mapDiv) return;
+    map = L.map('map', { zoomControl: true, attributionControl: true }).setView([48.8566, 2.3522], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+        tileSize: 256,
+        zoomOffset: 0
+    }).addTo(map);
+    markers = L.markerClusterGroup({
+        disableClusteringAtZoom: 17,
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        iconCreateFunction: cluster => {
+            const count = cluster.getChildCount();
+            return L.divIcon({
+                html: `<div style="background-color: #00AEBC; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${count}</div>`,
+                className: 'marker-cluster-custom',
+                iconSize: [30, 30]
+            });
+        }
+    });
+    map.addLayer(markers);
+    map.on('moveend', () => updateMap());
+    updateMap();
+}
+function updateMap() {
+    if (!map || !markers) return;
+    markers.clearLayers();
+    const filterConseiller = document.getElementById('filterConseiller')?.checked;
+    const filterLeadsNew = document.getElementById('filterLeadsNew')?.checked;
+    const filterLeadsRecall = document.getElementById('filterLeadsRecall')?.checked;
+    const filterLeadsNoRecall = document.getElementById('filterLeadsNoRecall')?.checked;
+    const filterLeadsFake = document.getElementById('filterLeadsFake')?.checked;
+    const filterLeadsFavorite = document.getElementById('filterLeadsFavorite')?.checked;
+    const filterLeadsConverted = document.getElementById('filterLeadsConverted')?.checked;
+    const filterMerchants = document.getElementById('filterMerchants')?.checked;
+    const filterEmails = document.getElementById('filterEmails')?.checked;
+    const filterRepartage = document.getElementById('filterRepartage')?.checked;
+    if (filterConseiller && currentConseiller && currentConseiller.lat && currentConseiller.lng) {
+        const marker = L.marker([currentConseiller.lat, currentConseiller.lng], { icon: blueIcon })
+            .bindPopup(`<b>${currentConseiller.name || 'Conseiller'}</b><br>Email: ${currentConseiller.email || '-'}<br>Tél: ${currentConseiller.phone || '-'}`);
+        markers.addLayer(marker);
+    }
+    const leads = loadData('leads') || [];
+    leads.forEach(lead => {
+        if (!lead || !lead.lat || !lead.lng) return;
+        let showLead = false;
+        if (lead.status === 'Nouveau' && filterLeadsNew) showLead = true;
+        else if (lead.status === 'À rappeler' && filterLeadsRecall) showLead = true;
+        else if (lead.status === 'Ne pas rappeler' && filterLeadsNoRecall) showLead = true;
+        else if (lead.status === 'Faux' && filterLeadsFake) showLead = true;
+        else if (lead.status === 'Favori' && filterLeadsFavorite) showLead = true;
+        else if (lead.status === 'Converti' && filterLeadsConverted) showLead = true;
+        if (showLead) {
+            const marker = L.marker([lead.lat, lead.lng], { icon: greenIcon })
+                .bindPopup(
+                    `<b>${lead.name || lead.phone || 'Lead'}</b><br>` +
+                    `Services: ${lead.services || '-'}<br>` +
+                    `Statut: ${lead.status || '-'}<br>` +
+                    `Tél: ${lead.phone || '-'}` +
+                    `<br><button onclick="openLeadForm('${lead.id}')">Voir Fiche</button>`
+                );
+            markers.addLayer(marker);
+        }
+    });
+    if (filterMerchants) {
+        const merchants = loadData('merchants') || [];
+        merchants.forEach(merchant => {
+            if (!merchant || !merchant.lat || !merchant.lng) return;
+            const marker = L.marker([merchant.lat, merchant.lng], { icon: redIcon })
+                .bindPopup(
+                    `<b>${merchant.name || 'Commerçant'}</b><br>` +
+                    `Activité: ${merchant.activity || '-'}<br>` +
+                    `Adresse: ${merchant.address || '-'}, ${merchant.cp || '-'}` +
+                    `<br><button onclick="openMerchantForm('${merchant.id}')">Voir Fiche</button>`
+                );
+            markers.addLayer(marker);
+        });
+    }
+    if (filterEmails) {
+        const emails = loadData('emails') || [];
+        emails.forEach(email => {
+            if (!email || !email.lat || !email.lng) return;
+            const marker = L.marker([email.lat, email.lng], { icon: orangeIcon })
+                .bindPopup(
+                    `<b>Email à ${email.recipient || '-'}</b><br>` +
+                    `Objet: ${email.subject || '-'}<br>` +
+                    `Date: ${email.date || '-'}` +
+                    `<br><button onclick="openEmailForm('${email.id}')">Voir Détail</button>`
+                );
+            markers.addLayer(marker);
+        });
+    }
+    if (filterRepartage) {}
+}
+function centerOnPosition() {
+    if (!map) return;
+    requestGeolocation('map_center',
+        coords => {
+            map.flyTo([coords.lat, coords.lng], 15);
+        },
+        () => alert("Impossible centrer.")
+    );
+}
+function addMapMarker() {
+    if (!map) return;
+    requestGeolocation('map_marker',
+        coords => {
+            const marker = L.marker([coords.lat, coords.lng], { icon: purpleIcon })
+                .bindPopup(`Marqueur perso<br>${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
+            markers.addLayer(marker);
+            map.flyTo([coords.lat, coords.lng], 15);
+            marker.openPopup();
+        },
+        () => alert("Géoloc échouée.")
+    );
+}
+function printMap() {
+    if (!map) {
+        alert("Carte non initialisée.");
+        return;
+    }
+    const mapPrintContainer = document.getElementById('mapPrintContainer');
+    if (!mapPrintContainer) return;
+    mapPrintContainer.innerHTML = `
+        <div class="print-header">Carte Vite Loger - Imprimée le ${new Date().toLocaleString('fr-FR')}</div>
+        <div id="mapPrint" style="width: 100%; height: 100%;"></div>
+    `;
+    document.body.classList.add('print-map-active');
+    const printMap = L.map('mapPrint', { zoomControl: false, attributionControl: false }).setView(map.getCenter(), map.getZoom());
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        tileSize: 256,
+        zoomOffset: 0
+    }).addTo(printMap);
+    const printMarkers = L.markerClusterGroup({
+        disableClusteringAtZoom: 17,
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true
+    });
+    markers.eachLayer(layer => {
+        const newMarker = L.marker(layer.getLatLng(), { icon: layer.options.icon })
+            .bindPopup(layer.getPopup()?.getContent() || '');
+        printMarkers.addLayer(newMarker);
+    });
+    printMap.addLayer(printMarkers);
+    setTimeout(() => {
+        window.print();
+        document.body.classList.remove('print-map-active');
+        mapPrintContainer.innerHTML = '';
+        printMap.remove();
+        if (map) map.invalidateSize();
+    }, 500);
+}
+function shareMap() {
+    if (!map) {
+        alert("Carte non initialisée.");
+        return;
+    }
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const shareText = `Vue carte Vite Loger\nCentre: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}\nZoom: ${zoom}\nVisitez viteloger.com`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'Vite Loger - Carte',
+            text: shareText,
+            url: 'https://viteloger.com'
+        }).catch(() => {
+            alert("Erreur partage.");
+        });
+    } else {
+        prompt("Copiez le texte :", shareText);
+    }
+}
+function openEmailForm(id) {
+    const emails = loadData('emails');
+    const email = emails.find(e => e && e.id === id);
+    if (email) {
+        setTextContent('emailPopupTitle', `Détail Email: ${email.recipient || 'Inconnu'}`);
+        setInputValue('emailEditId', id);
+        setInputValue('emailEditIdDisplay', id);
+        setInputValue('emailEditRecipient', email.recipient || '');
+        setInputValue('emailEditSubject', email.subject || '');
+        setInputValue('emailEditBody', email.body || '');
+        setInputValue('emailEditDate', email.date || '');
+        setInputValue('emailEditOpenDate', email.openDate || '');
+        setInputValue('emailEditLat', email.lat || '');
+        setInputValue('emailEditLng', email.lng || '');
+        document.getElementById('emailFormPopup')?.classList.add('visible');
+    } else {
+        alert("Email non trouvé.");
+    }
+}
+function closeEmailForm() {
+    document.getElementById('emailFormPopup')?.classList.remove('visible');
+}
+function deleteEmailForm() {
+    const id = document.getElementById('emailEditId')?.value;
+    if (!id) return;
+    deleteItem('emails', id, 'Email archivé !');
+    closeEmailForm();
+}
+function sendEmailCampaign(e) {
+    e.preventDefault();
+    const recipient = document.getElementById('emailRecipient')?.value;
+    const subject = document.getElementById('emailSubject')?.value;
+    const body = document.getElementById('emailBody')?.value;
+    const attachmentsInput = document.getElementById('emailAttachments');
+    if (!recipient || !subject || !body) {
+        alert("Champs requis manquants.");
+        return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(recipient)) {
+        alert("Email invalide.");
+        document.getElementById('emailRecipient').focus();
+        return;
+    }
+    let attachmentNames = [];
+    if (attachmentsInput?.files) {
+        attachmentNames = Array.from(attachmentsInput.files).map(file => file.name);
+    }
+    const emailBody = `${body}\n\nPièces jointes (non envoyées directement):\n${attachmentNames.length > 0 ? attachmentNames.join('\n') : 'Aucune'}`;
+    if (EMAILJS_USER_ID === 'user_your_user_id_here') {
+        alert("EmailJS non configuré.");
+        return;
+    }
+    requestGeolocation('email_send',
+        coords => {
+            const emailData = {
+                id: Date.now().toString(),
+                recipient,
+                subject,
+                body: emailBody,
+                date: new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                openDate: null,
+                lat: coords.lat,
+                lng: coords.lng
+            };
+            try {
+                emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    to_email: recipient,
+                    subject: subject,
+                    message: emailBody
+                }).then(() => {
+                    saveItem('emails', emailData.id, emailData);
+                    updateEmailTable();
+                    if (map) updateMap();
+                    alert("Email envoyé !");
+                    document.getElementById('emailForm').reset();
+                    document.getElementById('attachmentList').innerHTML = '';
+                }, () => {
+                    alert("Erreur envoi email.");
+                });
+            } catch {
+                alert("Erreur EmailJS.");
+            }
+        },
+        () => {
+            alert("Géoloc échouée, email non géolocalisé.");
+            const emailData = {
+                id: Date.now().toString(),
+                recipient,
+                subject,
+                body: emailBody,
+                date: new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                openDate: null,
+                lat: null,
+                lng: null
+            };
+            try {
+                emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    to_email: recipient,
+                    subject: subject,
+                    message: emailBody
+                }).then(() => {
+                    saveItem('emails', emailData.id, emailData);
+                    updateEmailTable();
+                    alert("Email envoyé !");
+                    document.getElementById('emailForm').reset();
+                    document.getElementById('attachmentList').innerHTML = '';
+                }, () => {
+                    alert("Erreur envoi email.");
+                });
+            } catch {
+                alert("Erreur EmailJS.");
+            }
+        }
+    );
+}
+function updateAttachmentList() {
+    const attachmentsInput = document.getElementById('emailAttachments');
+    const attachmentList = document.getElementById('attachmentList');
+    if (!attachmentsInput || !attachmentList) return;
+    attachmentList.innerHTML = '';
+    if (attachmentsInput.files && attachmentsInput.files.length > 0) {
+        if (attachmentsInput.files.length > 10) {
+            alert("Max 10 pièces jointes.");
+            attachmentsInput.value = '';
+            return;
+        }
+        Array.from(attachmentsInput.files).forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = file.name;
+            attachmentList.appendChild(li);
+        });
+    }
+}
+function saveEmailCampaign() {
+    const recipient = document.getElementById('emailRecipient')?.value || '';
+    const subject = document.getElementById('emailSubject')?.value || '';
+    const body = document.getElementById('emailBody')?.value || '';
+    const attachmentsInput = document.getElementById('emailAttachments');
+    let attachmentNames = [];
+    if (attachmentsInput?.files) {
+        attachmentNames = Array.from(attachmentsInput.files).map(file => file.name);
+    }
+    const draft = { recipient, subject, body, attachments: attachmentNames };
+    saveData('emailDraft', draft);
+    alert("Brouillon sauvegardé !");
+}
+function restoreEmailCampaign() {
+    const draft = loadData('emailDraft');
+    if (!draft) {
+        alert("Aucun brouillon trouvé.");
+        return;
+    }
+    setInputValue('emailRecipient', draft.recipient || '');
+    setInputValue('emailSubject', draft.subject || '');
+    setInputValue('emailBody', draft.body || '');
+    document.getElementById('attachmentList').innerHTML = draft.attachments && draft.attachments.length > 0 ?
+        draft.attachments.map(name => `<li>${name}</li>`).join('') : '';
+    alert("Brouillon chargé !");
+}
+function generateQR(type) {
+    const qrContainer = document.getElementById('qrCodeContainer');
+    if (!qrContainer) return;
+    qrContainer.innerHTML = '<p>Génération...</p>';
+    let qrData = '';
+    if (type === 'conseiller' && currentConseiller) {
+        qrData = JSON.stringify({
+            type: 'conseiller',
+            name: currentConseiller.name,
+            email: currentConseiller.email,
+            phone: currentConseiller.phone,
+            website: 'https://viteloger.com'
+        });
+    } else if (type === 'merchant') {
+        const id = document.getElementById('merchantId')?.value;
+        const merchants = loadData('merchants');
+        const merchant = merchants.find(m => m && m.id === id);
+        if (merchant) {
+            qrData = JSON.stringify({
+                type: 'merchant',
+                name: merchant.name,
+                activity: merchant.activity,
+                address: merchant.address,
+                cp: merchant.cp,
+                phone: merchant.phone,
+                email: merchant.email,
+                gerant: merchant.gerant
+            });
+        } else {
+            alert("Commerçant non trouvé.");
+            qrContainer.innerHTML = '<p>Erreur QR.</p>';
+            return;
+        }
+    }
+    if (!qrData) {
+        alert("Données QR manquantes.");
+        qrContainer.innerHTML = '<p>Erreur QR.</p>';
+        return;
+    }
+    try {
+        const qrCanvas = document.createElement('canvas');
+        QRCode.toCanvas(qrCanvas, qrData, {
+            width: 260,
+            margin: 2,
+            color: { dark: '#000000', light: '#FFFFFF' }
+        }, err => {
+            if (err) {
+                alert("Erreur génération QR.");
+                qrContainer.innerHTML = '<p>Erreur QR.</p>';
+                return;
+            }
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(qrCanvas);
+            qrContainer.dataset.qrData = qrData;
+            document.getElementById('qrPopup').classList.add('visible');
+        });
+    } catch {
+        alert("Erreur génération QR.");
+        qrContainer.innerHTML = '<p>Erreur QR.</p>';
+    }
+}
+function shareQR() {
+    const qrContainer = document.getElementById('qrCodeContainer');
+    if (!qrContainer || !qrContainer.dataset.qrData) {
+        alert("Aucun QR à partager.");
+        return;
+    }
+    const qrCanvas = qrContainer.querySelector('canvas');
+    if (!qrCanvas) {
+        alert("Erreur QR.");
+        return;
+    }
+    try {
+        qrCanvas.toBlob(blob => {
+            const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    title: 'Vite Loger - QR Code',
+                    text: 'QR Code généré via Vite Loger',
+                    files: [file]
+                }).catch(() => {
+                    alert("Erreur partage.");
+                });
+            } else {
+                const link = document.createElement('a');
+                link.href = qrCanvas.toDataURL('image/png');
+                link.download = 'qrcode.png';
+                link.click();
+                alert("Partage non supporté, image téléchargée.");
+            }
+        }, 'image/png');
+    } catch {
+        alert("Erreur partage QR.");
+    }
+}
+function downloadQR() {
+    const qrContainer = document.getElementById('qrCodeContainer');
+    if (!qrContainer || !qrContainer.dataset.qrData) {
+        alert("Aucun QR à télécharger.");
+        return;
+    }
+    const qrCanvas = qrContainer.querySelector('canvas');
+    if (!qrCanvas) {
+        alert("Erreur QR.");
+        return;
+    }
+    try {
+        const link = document.createElement('a');
+        link.href = qrCanvas.toDataURL('image/png');
+        link.download = 'qrcode.png';
+        link.click();
+    } catch {
+        alert("Erreur téléchargement QR.");
+    }
+}
+function startScan() {
+    const video = document.getElementById('scanVideo');
+    const canvas = document.getElementById('scanCanvas');
+    if (!video || !canvas) {
+        alert("Erreur accès caméra.");
+        return;
+    }
+    document.getElementById('scanPopup').classList.add('visible');
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
+        }).then(stream => {
+            videoStream = stream;
+            video.srcObject = stream;
+            video.play();
+            const ctx = canvas.getContext('2d');
+            function scanFrame() {
+                if (!videoStream) return;
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'dontInvert'
+                });
+                if (code && code.data) {
+                    handleDetectedQRCode(code.data);
+                } else {
+                    requestAnimationFrame(scanFrame);
+                }
+            }
+            requestAnimationFrame(scanFrame);
+        }).catch(() => {
+            alert("Erreur accès caméra.");
+            stopScan();
+        });
+    } else {
+        alert("Caméra non supportée.");
+        stopScan();
+    }
+}
+function stopScan() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+    }
+    const video = document.getElementById('scanVideo');
+    if (video) video.srcObject = null;
+    document.getElementById('scanPopup').classList.remove('visible');
+}
+function triggerQRUpload() {
+    const uploadInput = document.getElementById('uploadQR');
+    if (uploadInput) {
+        uploadInput.value = '';
+        uploadInput.click();
+    }
+}
+function handleQRUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        alert("Fichier non image.");
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = event => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert'
+            });
+            if (code && code.data) {
+                handleDetectedQRCode(code.data);
+            } else {
+                alert("Aucun QR détecté.");
+            }
+        };
+        img.onerror = () => alert("Erreur lecture image.");
+        img.src = event.target.result;
+    };
+    reader.onerror = () => alert("Erreur lecture fichier.");
+    reader.readAsDataURL(file);
+}
+function handleDetectedQRCode(data) {
+    stopScan();
+    promptOpenMerchantForm(null, null);
+}
+function closeQrPopup() {
+    const qrContainer = document.getElementById('qrCodeContainer');
+    if (qrContainer) {
+        qrContainer.innerHTML = '<p>Génération...</p>';
+        qrContainer.dataset.qrData = '';
+    }
+    document.getElementById('qrPopup').classList.remove('visible');
+}
+function openArchivePopup(type) {
+    currentArchiveType = type;
+    setTextContent('archivePopup', `Archives ${type.charAt(0).toUpperCase() + type.slice(1)}`);
+    updateArchiveTable();
+    document.getElementById('archivePopup').classList.add('visible');
+}
+function closeArchivePopup() {
+    currentArchiveType = null;
+    document.getElementById('archivePopup').classList.remove('visible');
+}
+function updateArchiveTable() {
+    const tbody = document.getElementById('archiveTableBody');
+    if (!tbody) return;
+    const filterInput = document.getElementById('archiveFilter');
+    const filter = filterInput ? filterInput.value.trim().toLowerCase() : '';
+    let archive = loadData('archive') || [];
+    if (currentArchiveType) {
+        archive = archive.filter(item => item && item.type === currentArchiveType.slice(0, -1));
+    }
+    const filteredArchive = archive.filter(item => {
+        if (!item) return false;
+        if (!filter) return true;
+        return Object.values(item).some(val => val != null && String(val).toLowerCase().includes(filter));
+    });
+    tbody.innerHTML = '';
+    if (filteredArchive.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 25px; color: #6c757d;">Aucune archive trouvée.</td></tr>';
+        return;
+    }
+    filteredArchive.forEach(item => {
+        if (!item || !item.id) return;
+        const tr = document.createElement('tr');
+        const typeLabel = item.type === 'lead' ? 'Lead' : item.type === 'merchant' ? 'Commerçant' : 'Email';
+        const mainInfo = item.name || item.recipient || item.phone || '-';
+        tr.innerHTML = `
+            <td>${item.id.slice(-4)}</td>
+            <td title="${mainInfo}">${mainInfo.substring(0, 30)}${mainInfo.length > 30 ? '...' : ''}</td>
+            <td>${typeLabel}</td>
+            <td>${item.deleteDate || '-'}</td>
+            <td style="text-align: center;">
+                <button onclick="restoreArchiveItem('${item.id}', '${item.type}')" title="Restaurer"><i class="fas fa-undo"></i></button>
+                <button class="cancel" onclick="deleteArchiveItem('${item.id}')" title="Supprimer définitivement"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+function sortArchiveTable(column) {
+    const tbody = document.getElementById('archiveTableBody');
+    if (!tbody) return;
+    let archive = loadData('archive') || [];
+    if (currentArchiveType) {
+        archive = archive.filter(item => item && item.type === currentArchiveType.slice(0, -1));
+    }
+    sortState.archive = sortState.archive || {};
+    const currentSortDirection = sortState.archive[column];
+    let newDirection = !currentSortDirection ? 'asc' : currentSortDirection === 'asc' ? 'desc' : null;
+    sortState.archive = {};
+    if (newDirection) sortState.archive[column] = newDirection;
+    if (newDirection) {
+        archive.sort((a, b) => {
+            if (!a || !b) return 0;
+            let valA = a[column] ?? '';
+            let valB = b[column] ?? '';
+            if (column === 'deleteDate' && typeof valA === 'string' && valA.includes('/') && typeof valB === 'string' && valB.includes('/')) {
+                try {
+                    const parseDate = dateStr => {
+                        const parts = dateStr.split('/');
+                        if (parts.length !== 3) return null;
+                        return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                    };
+                    const dateA = parseDate(valA);
+                    const dateB = parseDate(valB);
+                    if (dateA && dateB) return newDirection === 'asc' ? dateA - dateB : dateB - dateA;
+                } catch {}
+            }
+            valA = String(valA).toLowerCase();
+            valB = String(valB).toLowerCase();
+            return newDirection === 'asc' ? valA.localeCompare(valB, 'fr') : valB.localeCompare(valA, 'fr');
+        });
+    } else {
+        archive.sort((a, b) => (parseInt(b?.id) || 0) - (parseInt(a?.id) || 0));
+    }
+    const filterInput = document.getElementById('archiveFilter');
+    const filter = filterInput ? filterInput.value.trim().toLowerCase() : '';
+    const filteredArchive = archive.filter(item => {
+        if (!item) return false;
+        if (!filter) return true;
+        return Object.values(item).some(val => val != null && String(val).toLowerCase().includes(filter));
+    });
+    tbody.innerHTML = '';
+    if (filteredArchive.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 25px; color: #6c757d;">Aucune archive trouvée.</td></tr>';
+        return;
+    }
+    filteredArchive.forEach(item => {
+        if (!item || !item.id) return;
+        const tr = document.createElement('tr');
+        const typeLabel = item.type === 'lead' ? 'Lead' : item.type === 'merchant' ? 'Commerçant' : 'Email';
+        const mainInfo = item.name || item.recipient || item.phone || '-';
+        tr.innerHTML = `
+            <td>${item.id.slice(-4)}</td>
+            <td title="${mainInfo}">${mainInfo.substring(0, 30)}${mainInfo.length > 30 ? '...' : ''}</td>
+            <td>${typeLabel}</td>
+            <td>${item.deleteDate || '-'}</td>
+            <td style="text-align: center;">
+                <button onclick="restoreArchiveItem('${item.id}', '${item.type}')" title="Restaurer"><i class="fas fa-undo"></i></button>
+                <button class="cancel" onclick="deleteArchiveItem('${item.id}')" title="Supprimer définitivement"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+function restoreArchiveItem(id, type) {
+    if (!confirm(`Restaurer ${type} ID ${id} ?`)) return;
+    const archive = loadData('archive');
+    const item = archive.find(item => item && item.id === id && item.type === type);
+    if (!item) {
+        alert("Élément non trouvé.");
+        return;
+    }
+    const items = loadData(`${type}s`) || [];
+    const newItem = { ...item };
+    delete newItem.type;
+    delete newItem.deleteDate;
+    items.push(newItem);
+    saveData(`${type}s`, items);
+    const newArchive = archive.filter(a => a && (a.id !== id || a.type !== type));
+    saveData('archive', newArchive);
+    updateArchiveTable();
+    if (map) updateMap();
+    if (type === 'lead') updateLeadsTable();
+    else if (type === 'merchant') updateMerchantsTable();
+    else if (type === 'email') updateEmailTable();
+    alert(`${type.charAt(0).toUpperCase() + type.slice(1)} restauré !`);
+}
+function deleteArchiveItem(id) {
+    if (!confirm(`Supprimer définitivement archive ID ${id} ?`)) return;
+    const archive = loadData('archive');
+    const newArchive = archive.filter(item => item && item.id !== id);
+    saveData('archive', newArchive);
+    updateArchiveTable();
+    alert("Archive supprimée !");
+}
+function updateStats() {
+    const statsCanvas = document.getElementById('statsChart');
+    if (!statsCanvas) return;
+    const statsType = document.getElementById('statsType')?.value || 'bar';
+    const statsFilter = document.getElementById('statsFilter')?.value || 'all';
+    if (statsChart) {
+        statsChart.destroy();
+        statsChart = null;
+    }
+    const ctx = statsCanvas.getContext('2d');
+    let data = { labels: [], datasets: [] };
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const textColor = isDarkMode ? '#e0e0e0' : '#212529';
+    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    if (statsFilter === 'all') {
+        const leads = loadData('leads') || [];
+        const statusCounts = {
+            'Nouveau': 0,
+            'À rappeler': 0,
+            'Ne pas rappeler': 0,
+            'Faux': 0,
+            'Favori': 0,
+            'Converti': 0
+        };
+        leads.forEach(lead => {
+            if (lead && lead.status) statusCounts[lead.status] = (statusCounts[lead.status] || 0) + 1;
+        });
+        data.labels = Object.keys(statusCounts);
+        data.datasets = [{
+            label: 'Leads par Statut',
+            data: Object.values(statusCounts),
+            backgroundColor: ['#00AEBC', '#F0DF00', '#FF6B6B', '#6B7280', '#10B981', '#3B82F6'],
+            borderColor: ['#008c96', '#d4c200', '#e63946', '#4b5563', '#059669', '#2563eb'],
+            borderWidth: 1
+        }];
+    } else if (statsFilter === 'merchants') {
+        const merchants = loadData('merchants') || [];
+        const activityCounts = {};
+        merchants.forEach(merchant => {
+            if (merchant && merchant.activity) {
+                activityCounts[merchant.activity] = (activityCounts[merchant.activity] || 0) + 1;
+            }
+        });
+        data.labels = Object.keys(activityCounts);
+        data.datasets = [{
+            label: 'Commerçants par Activité',
+            data: Object.values(activityCounts),
+            backgroundColor: ['#00AEBC', '#F0DF00', '#FF6B6B', '#6B7280', '#10B981', '#3B82F6'],
+            borderColor: ['#008c96', '#d4c200', '#e63946', '#4b5563', '#059669', '#2563eb'],
+            borderWidth: 1
+        }];
+    } else if (statsFilter === 'emails') {
+        const emails = loadData('emails') || [];
+        const monthCounts = {};
+        emails.forEach(email => {
+            if (email && email.date) {
+                try {
+                    const dateParts = email.date.split(' ')[0].split('/');
+                    const monthYear = `${dateParts[1]}/${dateParts[2]}`;
+                    monthCounts[monthYear] = (monthCounts[monthYear] || 0) + 1;
+                } catch {}
+            }
+        });
+        data.labels = Object.keys(monthCounts).sort((a, b) => {
+            const [monthA, yearA] = a.split('/');
+            const [monthB, yearB] = b.split('/');
+            return new Date(yearA, monthA - 1) - new Date(yearB, monthB - 1);
+        });
+        data.datasets = [{
+            label: 'Emails par Mois',
+            data: data.labels.map(month => monthCounts[month]),
+            backgroundColor: '#00AEBC',
+            borderColor: '#008c96',
+            borderWidth: 1,
+            fill: statsType === 'line'
+        }];
+    } else if (statsFilter === 'leadsByService') {
+        const leads = loadData('leads') || [];
+        const serviceCounts = {};
+        leads.forEach(lead => {
+            if (lead && lead.services) {
+                lead.services.split(',').forEach(service => {
+                    service = service.trim();
+                    if (service) serviceCounts[service] = (serviceCounts[service] || 0) + 1;
+                });
+            }
+        });
+        data.labels = Object.keys(serviceCounts);
+        data.datasets = [{
+            label: 'Leads par Service',
+            data: Object.values(serviceCounts),
+            backgroundColor: ['#00AEBC', '#F0DF00', '#FF6B6B', '#6B7280', '#10B981', '#3B82F6'],
+            borderColor: ['#008c96', '#d4c200', '#e63946', '#4b5563', '#059669', '#2563eb'],
+            borderWidth: 1
+        }];
+    }
+    if (data.labels.length === 0) {
+        data.labels = ['Aucune donnée'];
+        data.datasets = [{ label: 'Aucune donnée', data: [0], backgroundColor: '#6B7280' }];
+    }
+    try {
+        statsChart = new Chart(ctx, {
+            type: statsType,
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: statsType !== 'line', position: 'top', labels: { color: textColor } },
+                    tooltip: { enabled: true },
+                    title: {
+                        display: true,
+                        text: statsFilter === 'all' ? 'Leads par Statut' :
+                              statsFilter === 'merchants' ? 'Commerçants par Activité' :
+                              statsFilter === 'emails' ? 'Emails par Mois' : 'Leads par Service',
+                        color: textColor,
+                        font: { size: 16 }
+                    }
+                },
+                scales: statsType === 'line' || statsType === 'bar' ? {
+                    x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                    y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }
+                } : {},
+                animation: { duration: 1000, easing: 'easeOutQuart' }
+            }
+        });
+    } catch {
+        statsCanvas.parentElement.innerHTML = '<p style="text-align: center; color: red;">Erreur affichage graphique.</p>';
+    }
+}
+function saveStats() {
+    const statsType = document.getElementById('statsType')?.value || 'bar';
+    const statsFilter = document.getElementById('statsFilter')?.value || 'all';
+    saveData('statsConfig', { type: statsType, filter: statsFilter });
+    alert("Vue stats sauvegardée !");
+}
+function restoreStats() {
+    const config = loadData('statsConfig');
+    if (!config) {
+        alert("Aucune vue sauvegardée.");
+        return;
+    }
+    setInputValue('statsType', config.type || 'bar');
+    setInputValue('statsFilter', config.filter || 'all');
+    updateStats();
+    alert("Vue stats restaurée !");
+}
+</script>
+</body>
+</html>
